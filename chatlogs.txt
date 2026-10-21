@@ -257,3 +257,45 @@ Summary:
    - Frontend Vite build: production bundle built in 2.57s.
    - Python Pytest: 6 passed tests for embedding service.
    - Total Automated Tests: 54/54 passing (100%).
+
+[2026-10-21T15:24:00+05:30]
+Model: Gemini 3.8 Flash (High)
+Files Modified / Created:
+- supabase/migrations/0004_create_chat_history.sql
+- backend/src/services/chatHistoryService.js
+- backend/src/controllers/chatController.js
+- backend/src/routes/chat.routes.js
+- frontend/src/services/chatApi.js
+- frontend/src/hooks/useChat.js
+- frontend/src/components/Sidebar.jsx
+- frontend/src/components/AppHeader.jsx
+- frontend/src/components/MessageBubble.jsx
+- frontend/src/App.jsx
+- chatlogs.txt
+
+Summary:
+1. Supabase Chat History Database Migration (0004_create_chat_history.sql):
+   - Added `chat_sessions` table with UUID primary key, thread title, and timestamps.
+   - Added `chat_messages` table with UUID primary key, foreign key references to `chat_sessions` (cascade delete), role ('user' | 'assistant'), text content, literary interpretation, JSONB sources payload, and status.
+   - Configured indexing on `chat_messages(session_id, created_at asc)` for rapid chronological loading.
+   - Configured Row Level Security (RLS) and server-only `service_role` privileges.
+
+2. Backend History Service & API Endpoints:
+   - Created `chatHistoryService.js` with defensive error handling (graceful fallback if tables are not yet migrated in Supabase).
+   - Added `GET /api/chat/sessions`, `GET /api/chat/sessions/:id`, `DELETE /api/chat/sessions/:id`.
+   - Updated `POST /api/chat` to accept optional `sessionId` and persist user & assistant message turns into PostgreSQL.
+
+3. Frontend UI Revamp:
+   - Created `Sidebar.jsx`: Sliding literary drawer with "+ New Discussion" button, past inquiry threads list, active thread highlight, hover delete button, and chunk index statistics.
+   - Updated `AppHeader.jsx`: Added sidebar toggle button, model badge (`Gemini 3.8 Flash`), green pulsating vector index health dot, and quick "New Chat" button.
+   - Enhanced `MessageBubble.jsx`: Added verbatim quotation highlighting for double-quoted book text spans (`"..."`), literary interpretation callout box in amethyst styling, and one-click "Copy Answer" button with checkmark animation.
+   - Updated `App.jsx` and `useChat.js`: Seamless integration of session switching, thread deletion, and responsive desktop/mobile layout.
+
+4. Testing & Browser Walkthrough:
+   - Backend Vitest: 44 tests passing.
+   - Frontend Vitest: 4 tests passing.
+   - Frontend Vite build: 3.21s production bundle generated.
+   - Live browser walkthrough executed and recorded: `ui_revamp_walkthrough_1792576195567.webp`.
+
+
+

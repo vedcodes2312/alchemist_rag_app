@@ -16,21 +16,25 @@ export class ApiError extends Error {
 }
 
 /**
- * Sends a question to the backend chat endpoint.
+ * Sends a question to the backend chat endpoint with optional sessionId.
  *
  * @param {string} question
+ * @param {string} [sessionId]
  * @param {AbortSignal} [signal]
  * @returns {Promise<object>}
  */
-export async function askQuestion(question, signal) {
+export async function askQuestion(question, sessionId = null, signal = null) {
   let res;
   try {
+    const payload = { question };
+    if (sessionId) payload.sessionId = sessionId;
+
     res = await fetch(`${API_BASE_URL}/chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ question }),
+      body: JSON.stringify(payload),
       signal,
     });
   } catch (err) {
@@ -66,6 +70,60 @@ export async function askQuestion(question, signal) {
   }
 
   return data;
+}
+
+/**
+ * Fetches all saved chat sessions.
+ *
+ * @param {AbortSignal} [signal]
+ * @returns {Promise<Array<{ id: string, title: string, created_at: string, updated_at: string }>>}
+ */
+export async function listChatSessions(signal) {
+  try {
+    const res = await fetch(`${API_BASE_URL}/chat/sessions`, { signal });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.sessions || [];
+  } catch (_err) {
+    return [];
+  }
+}
+
+/**
+ * Fetches full message history for a specific chat session.
+ *
+ * @param {string} sessionId
+ * @param {AbortSignal} [signal]
+ * @returns {Promise<{ id: string, title: string, messages: Array } | null>}
+ */
+export async function getChatSession(sessionId, signal) {
+  try {
+    const res = await fetch(`${API_BASE_URL}/chat/sessions/${sessionId}`, { signal });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.session || null;
+  } catch (_err) {
+    return null;
+  }
+}
+
+/**
+ * Deletes a chat session from the database.
+ *
+ * @param {string} sessionId
+ * @param {AbortSignal} [signal]
+ * @returns {Promise<boolean>}
+ */
+export async function deleteChatSession(sessionId, signal) {
+  try {
+    const res = await fetch(`${API_BASE_URL}/chat/sessions/${sessionId}`, {
+      method: 'DELETE',
+      signal,
+    });
+    return res.ok;
+  } catch (_err) {
+    return false;
+  }
 }
 
 /**
