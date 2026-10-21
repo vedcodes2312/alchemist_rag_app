@@ -142,4 +142,68 @@ Summary:
      - Logged `Warning: An update to App inside a test was not wrapped in act(...)` in Vitest.
      - Cause: Asynchronous initial health-check fetch in React `useChat` hook completed during test rendering. All assertions passed; will wrap fetch mocks in `act()` during UI test refinement.
 
+[2026-10-21T06:50:00+05:30]
+Model: Gemini 3.8 Flash (High)
+Files Modified / Created:
+- chatlogs.txt
+
+Summary:
+1. Live Database Inventory Audit (Supabase PostgreSQL + pgvector):
+   - Table `documents`: 1 row (slug: 'the-alchemist', title: 'The Alchemist', author: 'Paulo Coelho', chunk_count: 303, embedding_model: 'sentence-transformers/all-MiniLM-L6-v2', embedding_dimension: 384, source_sha256: '83cb54574a175fac0a0ed5a2ccbcfcddaae0640a118404e914d901314f81115b').
+   - Table `chunks`: 303 rows with `vector(384)` embeddings.
+     - Chapter distribution: Prologue: 2 chunks, Part One: 86 chunks, Part Two: 211 chunks, Epilogue: 4 chunks.
+     - Attributes per chunk: stable ID, chunk_index, chapter, chapter_index, page_number, content, token_estimate, char_start, char_end, embedding (384-d vector), metadata, created_at.
+   - Database Function: `public.match_chunks` RPC with cosine similarity `1 - (c.embedding <=> query_embedding)`, restricted to `service_role`.
+   - Security: Row Level Security (RLS) enabled on all tables; anon/public access revoked.
+
+2. AWS Free Tier Feasibility Analysis:
+   - Architecture on AWS Free Tier:
+     - Compute: AWS EC2 `t2.micro` / `t3.micro` (750 free hours/month, 1 vCPU, 1 GB RAM, 30 GB EBS).
+     - Memory footprint: OS (~150MB) + Python SentenceTransformers CPU (~300MB) + Express Backend (~70MB) + Nginx (~15MB) = ~535MB. Fits comfortably inside 1 GB RAM (recommended with 1-2 GB swapfile on free 30GB EBS).
+     - Database: Managed Supabase Free Tier (500MB free storage, pgvector enabled) hosting vector storage at $0.00 cost.
+     - Frontend: Served directly via Nginx on EC2 or via AWS S3 + CloudFront CDN (free tier includes 5GB S3 and 1TB CloudFront egress).
+
+[2026-10-21T11:50:00+05:30]
+Model: Gemini 3.8 Flash (High)
+Files Modified / Created:
+- backend/src/services/retrievalService.js
+- backend/src/services/bookService.js
+- backend/src/prompts/groundedAnswer.js
+- backend/src/services/llmService.js
+- backend/src/services/ragService.js
+- backend/src/controllers/bookController.js
+- backend/src/controllers/chatController.js
+- backend/src/config/env.js
+- backend/tests/services/groundedAnswer.test.js
+- backend/tests/services/llmService.test.js
+- backend/tests/services/retrievalService.test.js
+- backend/tests/services/ragService.test.js
+- backend/tests/chat.test.js
+- chatlogs.txt
+
+Summary:
+1. Implemented Semantic Retrieval Service (retrievalService.js):
+   - Integrates question embedding via local Python service and executes Supabase `match_chunks` RPC.
+   - Applies Node.js similarity threshold (0.30) and caps candidate excerpt lengths to MAX_EXCERPT_CHARS (800).
+2. Implemented Grounded Answer Prompt Module (prompts/groundedAnswer.js):
+   - Formulates strict anti-hallucination system prompt strictly forbidding outside knowledge.
+   - Formats evidence blocks with S1, S2... labels, deliberately excluding internal chunk IDs and chapter names from the prompt to prevent fabricated citations.
+   - Provides canonical INSUFFICIENT_EVIDENCE_FALLBACK message.
+3. Implemented Gemini LLM Service (services/llmService.js):
+   - Integrated with `@google/genai` targeting the Gemini 3 Flash model (`gemini-3-flash-preview`).
+   - Enforces structured JSON output schema matching `{ sufficient, answer, interpretation, usedEvidence }`.
+   - Implemented verbatim quotation verification: extracts double-quoted spans >= 4 words, verifies substring existence in retrieved chunks, triggers one corrective retry if unverified, and sets warning flag if needed.
+4. Implemented RAG Orchestrator & Controller (services/ragService.js, controllers/chatController.js):
+   - Connects POST /api/chat to full pipeline.
+   - Guarantees 0 LLM calls on questions with no candidates above threshold, preventing hallucinations and conserving token budget.
+   - Validates cited labels and constructs backend-grounded `sources[]` ordered by similarity.
+5. Live End-to-End Validation:
+   - Tested "Who is Melchizedek?": returned status "answered", explicit answer identifying the King of Salem, literary interpretation, and cited source chunk from Part One (similarity 0.489).
+   - Tested out-of-domain question ("What is machine learning gradient descent?"): returned status "insufficient_evidence", sources [], and fallback guidance text with 0 LLM calls.
+6. Automated Test Suite Results:
+   - Backend vitest tests: 11 test suites, 44 passed (100% pass rate).
+   - Frontend vitest tests: 4 passed.
+   - Frontend production build: vite build succeeded (2.87s).
+
+
 

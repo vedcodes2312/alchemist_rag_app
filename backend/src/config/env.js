@@ -21,7 +21,7 @@ const envSchema = z.object({
 
   // Gemini (server-only)
   GEMINI_API_KEY: z.string().optional().or(z.literal('')),
-  GEMINI_MODEL: z.string().default('gemini-2.5-flash'),
+  GEMINI_MODEL: z.string().default('gemini-3.8-flash'),
 
   // Python Embedding Service
   EMBEDDING_SERVICE_URL: z.string().url().default('http://127.0.0.1:8001'),
