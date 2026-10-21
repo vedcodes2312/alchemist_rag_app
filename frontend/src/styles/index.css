@@ -142,3 +142,28 @@ textarea:focus-visible,
     animation: none !important;
   }
 }
+
+/* Custom dark-theme scrollbar styling */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #2E3547 transparent;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2E3547;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3E4760;
+}
+

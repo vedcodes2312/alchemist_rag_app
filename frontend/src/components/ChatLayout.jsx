@@ -9,11 +9,11 @@ export function ChatLayout({ chat }) {
   const hasStarted = messages.length > 0 || error !== null;
 
   return (
-    <main className="relative flex min-h-[calc(100dvh-56px)] flex-col justify-between overflow-hidden">
+    <main className="relative flex-1 flex flex-col min-h-0 h-full overflow-hidden bg-[#141722]">
       {/* Subtle Desert Dune Silhouette SVG Background */}
       <div
         aria-hidden="true"
-        className="pointer-events-none fixed inset-0 z-0 opacity-40 desert-sky"
+        className="pointer-events-none absolute inset-0 z-0 opacity-40 desert-sky overflow-hidden"
       >
         <svg
           className="absolute bottom-0 left-0 w-full text-[#22283A]/30"
@@ -25,22 +25,28 @@ export function ChatLayout({ chat }) {
         </svg>
       </div>
 
-      {/* Main Conversation Column */}
-      <div className="relative z-[1] mx-auto flex w-full max-w-[760px] flex-1 flex-col px-4 sm:px-6">
-        {!hasStarted ? (
-          <WelcomeScreen onPick={send} disabled={status === 'loading'} />
-        ) : (
-          <ChatWindow
-            messages={messages}
-            status={status}
-            error={error}
-            onRetry={retry}
-          />
-        )}
+      {/* Scrollable Conversation Viewport (Only this area scrolls) */}
+      <div className="relative z-[1] flex-1 min-h-0 overflow-y-auto px-4 sm:px-6">
+        <div className="mx-auto flex w-full max-w-[760px] min-h-full flex-col">
+          {!hasStarted ? (
+            <div className="my-auto py-6 sm:py-8">
+              <WelcomeScreen onPick={send} disabled={status === 'loading'} />
+            </div>
+          ) : (
+            <ChatWindow
+              messages={messages}
+              status={status}
+              error={error}
+              onRetry={retry}
+            />
+          )}
+        </div>
       </div>
 
-      {/* Composer Input */}
-      <ChatInput onSend={send} disabled={status === 'loading'} />
+      {/* Fixed Composer Dock (Pinned at bottom, never scrolls out of view) */}
+      <div className="relative z-[2] shrink-0 w-full border-t border-[#262B3B]/60 bg-[#141722]/90 backdrop-blur-md">
+        <ChatInput onSend={send} disabled={status === 'loading'} />
+      </div>
     </main>
   );
 }

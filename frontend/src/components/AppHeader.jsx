@@ -14,7 +14,7 @@ export function AppHeader({
   isSidebarOpen,
 }) {
   return (
-    <header className="sticky top-0 z-20 h-14 w-full border-b border-[#2A2E3D] bg-[#141722]/90 backdrop-blur-md">
+    <header className="sticky top-0 z-20 h-14 w-full shrink-0 border-b border-[#2A2E3D] bg-[#141722]/90 backdrop-blur-md">
       <div className="flex h-full w-full items-center justify-between px-3 sm:px-5">
         {/* Left: Sidebar Toggle & Brand */}
         <div className="flex items-center gap-3">

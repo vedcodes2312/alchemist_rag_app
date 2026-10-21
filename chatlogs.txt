@@ -297,5 +297,38 @@ Summary:
    - Frontend Vite build: 3.21s production bundle generated.
    - Live browser walkthrough executed and recorded: `ui_revamp_walkthrough_1792576195567.webp`.
 
+[2026-10-21T20:38:00+05:30]
+Model: Gemini 3.8 Flash (High)
+Files Modified / Created:
+- frontend/src/App.jsx
+- frontend/src/components/ChatLayout.jsx
+- frontend/src/components/ChatInput.jsx
+- frontend/src/components/ChatWindow.jsx
+- frontend/src/components/Sidebar.jsx
+- frontend/src/components/AppHeader.jsx
+- frontend/src/styles/index.css
+- chatlogs.txt
 
+Summary:
+1. Root Cause Diagnosis of UI Scrolling Issue:
+   - Outer scroll wrapper in `App.jsx` (`overflow-y-auto` wrapping `<ChatLayout />`) forced the entire layout (header, messages, and input dock) to scroll together as conversation length expanded.
+   - `ChatLayout.jsx` had `overflow-hidden` on `<main>`, which in standard Blink/WebKit CSS specifications breaks `position: sticky` on descendant elements, causing `<ChatInput>` to remain stranded at the bottom of the long message stack rather than sticking to the viewport.
+   - `bottomRef.current?.scrollIntoView()` in `ChatWindow.jsx` scrolled the entire page, pushing the composer out of view and requiring manual scrolling to re-find the input box.
 
+2. Modern Chat Architecture Fix:
+   - `App.jsx`: Configured chat viewport container as `flex-1 flex flex-col min-w-0 min-h-0 h-full overflow-hidden relative`, preventing outer page scrolling.
+   - `ChatLayout.jsx`: Separated message list from the composer input. The conversation column is now an independent scroll viewport (`flex-1 min-h-0 overflow-y-auto px-4 sm:px-6`), while the composer dock is pinned as a fixed `shrink-0` element below it.
+   - `ChatInput.jsx`: Removed `sticky bottom-0`; replaced with a docked footer with subtle gradient, glassmorphism border (`border-t border-[#262B3B]/60`), and backdrop blur.
+   - `ChatWindow.jsx`: Refined auto-scroll with `bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })` and a clean 16px bottom spacer (`h-4`).
+   - `Sidebar.jsx` & `AppHeader.jsx`: Added `h-full shrink-0` and `shrink-0` to prevent flex squashing.
+   - `index.css`: Added custom cross-browser slim dark-theme scrollbars (`scrollbar-width: thin`, `scrollbar-color: #2E3547 transparent`).
+
+3. Verification & Browser Subagent Testing:
+   - Frontend Vitest: 4/4 tests passing.
+   - Frontend Vite build: 0 errors, production bundle built in 2.50s.
+   - Backend Vitest: 44/44 tests passing across all 11 test files.
+   - Live Browser Validation: Interactive testing performed via browser subagent (`scrolling_fix_verification_1792595049450.webp` and `scroll_and_passages_demo_1792595219132.webp`). Verified that:
+     - The input composer remains anchored at the bottom at all times.
+     - Auto-scroll smoothly scrolls new answers into view above the dock.
+     - Bidirectional user scrolling (scrolling up to read previous questions/answers and scrolling down to the latest message) operates smoothly and independently.
+     - Expanding "Consulted Passages" expands seamlessly without layout displacement.

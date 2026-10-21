@@ -31,7 +31,7 @@ export function Sidebar({
 
       {/* Sidebar Drawer */}
       <aside
-        className={`fixed lg:static top-0 bottom-0 left-0 z-40 w-72 bg-[#12151E] border-r border-[#262B3B] flex flex-col transition-all duration-300 ease-in-out ${
+        className={`fixed lg:static top-0 bottom-0 left-0 z-40 w-72 h-full shrink-0 bg-[#12151E] border-r border-[#262B3B] flex flex-col transition-all duration-300 ease-in-out ${
           isOpen
             ? 'translate-x-0'
             : '-translate-x-full lg:-ml-72'

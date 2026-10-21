@@ -37,11 +37,11 @@ export function ChatInput({ onSend, disabled = false, maxLength = 500 }) {
   const showCounter = charsLeft <= 50;
 
   return (
-    <div className="sticky bottom-0 z-10 w-full bg-gradient-to-t from-[#171A24] via-[#171A24]/95 to-transparent pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+    <div className="w-full pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
       <div className="mx-auto max-w-[760px] px-4 sm:px-6">
         <form
           onSubmit={handleSubmit}
-          className="relative flex items-end gap-2 rounded-2xl border border-[#D7B98E]/30 bg-[#22283A] p-2 sm:p-2.5 shadow-[0_-8px_24px_rgba(23,26,36,0.85)] transition-all focus-within:border-[#C69B55]/70"
+          className="relative flex items-end gap-2 rounded-2xl border border-[#D7B98E]/30 bg-[#22283A] p-2 sm:p-2.5 shadow-[0_4px_20px_rgba(0,0,0,0.35)] transition-all focus-within:border-[#C69B55]/70"
         >
           <label htmlFor="chat-textarea" className="sr-only">
             Ask a question about The Alchemist

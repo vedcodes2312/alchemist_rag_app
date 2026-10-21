@@ -7,7 +7,7 @@ export function ChatWindow({ messages = [], status, error, onRetry }) {
   const bottomRef = useRef(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [messages, status, error]);
 
   return (
@@ -29,7 +29,7 @@ export function ChatWindow({ messages = [], status, error, onRetry }) {
 
       {error && <ErrorMessage error={error} onRetry={onRetry} />}
 
-      <div ref={bottomRef} />
+      <div ref={bottomRef} className="h-4" />
     </div>
   );
 }
