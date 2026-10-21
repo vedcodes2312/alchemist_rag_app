@@ -174,65 +174,94 @@ export class LLMService {
   /**
    * Calls the Gemini API with timeout and error mapping.
    */
-  async #callModel(systemInstruction, userContent) {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), this.timeoutMs);
+  async #callModel(systemInstruction, userContent, retries = 3) {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      let timeoutId;
+      try {
+        const timeoutPromise = new Promise((_, reject) => {
+          timeoutId = setTimeout(() => {
+            const err = new Error(`Gemini request timed out after ${this.timeoutMs}ms`);
+            err.name = 'TimeoutError';
+            reject(err);
+          }, this.timeoutMs);
+        });
 
-    try {
-      const response = await this.ai.models.generateContent({
-        model: this.modelName,
-        contents: userContent,
-        config: {
-          systemInstruction,
-          temperature: 0.1,
-          responseMimeType: 'application/json',
-          responseSchema: {
-            type: 'OBJECT',
-            properties: {
-              sufficient: { type: 'BOOLEAN' },
-              answer: { type: 'STRING' },
-              interpretation: { type: 'STRING', nullable: true },
-              usedEvidence: {
-                type: 'ARRAY',
-                items: { type: 'STRING' },
+        const generatePromise = this.ai.models.generateContent({
+          model: this.modelName,
+          contents: userContent,
+          config: {
+            systemInstruction,
+            temperature: 0.1,
+            responseMimeType: 'application/json',
+            responseSchema: {
+              type: 'OBJECT',
+              properties: {
+                sufficient: { type: 'BOOLEAN' },
+                answer: { type: 'STRING' },
+                interpretation: { type: 'STRING', nullable: true },
+                usedEvidence: {
+                  type: 'ARRAY',
+                  items: { type: 'STRING' },
+                },
               },
+              required: ['sufficient', 'answer', 'usedEvidence'],
             },
-            required: ['sufficient', 'answer', 'usedEvidence'],
           },
-        },
-      });
+        });
 
-      return response.text;
-    } catch (err) {
-      if (err.name === 'AbortError') {
+        const response = await Promise.race([generatePromise, timeoutPromise]);
+        clearTimeout(timeoutId);
+        return response.text;
+      } catch (err) {
+        if (timeoutId) clearTimeout(timeoutId);
+
+        const status = err.status || err.statusCode || 500;
+        const message = typeof err.message === 'string' ? err.message : '';
+
+        const isTransient =
+          err.code === 'ECONNRESET' ||
+          err.code === 'ETIMEDOUT' ||
+          err.code === 'UND_ERR_SOCKET' ||
+          err.name === 'TimeoutError' ||
+          status === 503 ||
+          message.includes('503') ||
+          message.includes('high demand') ||
+          message.includes('UNAVAILABLE') ||
+          message.includes('fetch failed') ||
+          message.includes('wsarecv') ||
+          message.includes('forcibly closed') ||
+          message.includes('network');
+
+        if (isTransient && attempt < retries) {
+          await new Promise((res) => setTimeout(res, 1200 * attempt));
+          continue;
+        }
+
+        if (err.name === 'AbortError' || err.name === 'TimeoutError') {
+          throw new AppError(
+            'LLM_TIMEOUT',
+            504,
+            `Gemini request timed out after ${this.timeoutMs}ms`,
+            { cause: err }
+          );
+        }
+
+        if (status === 429 || message.includes('quota') || message.includes('RESOURCE_EXHAUSTED')) {
+          throw new AppError(
+            'LLM_RATE_LIMITED',
+            429,
+            'Gemini rate limit exceeded. Please wait a moment before trying again.',
+            { cause: err }
+          );
+        }
+
         throw new AppError(
-          'LLM_TIMEOUT',
-          504,
-          `Gemini request timed out after ${this.timeoutMs}ms`,
+          'LLM_ERROR',
+          502,
+          `Gemini API error: ${message}`,
           { cause: err }
         );
       }
-
-      const status = err.status || err.statusCode || 500;
-      const message = err.message || '';
-
-      if (status === 429 || message.includes('quota') || message.includes('RESOURCE_EXHAUSTED')) {
-        throw new AppError(
-          'LLM_RATE_LIMITED',
-          429,
-          'Gemini rate limit exceeded. Please wait a moment before trying again.',
-          { cause: err }
-        );
-      }
-
-      throw new AppError(
-        'LLM_ERROR',
-        502,
-        `Gemini API error: ${message}`,
-        { cause: err }
-      );
-    } finally {
-      clearTimeout(timeoutId);
     }
   }
 

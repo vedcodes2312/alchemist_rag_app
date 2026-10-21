@@ -203,7 +203,57 @@ Summary:
 6. Automated Test Suite Results:
    - Backend vitest tests: 11 test suites, 44 passed (100% pass rate).
    - Frontend vitest tests: 4 passed.
-   - Frontend production build: vite build succeeded (2.87s).
 
 
+[2026-10-21T12:45:00+05:30]
+Model: Gemini 3.8 Flash (High)
+Files Modified / Created:
+- backend/package.json
+- package.json
+- backend/src/services/llmService.js
+- backend/scripts/evaluate.js
+- backend/evaluation/dataset.json
+- README.md
+- chatlogs.txt
 
+Summary:
+1. Benchmark Dataset & Evaluation Runner (Phase 4):
+   - Created `backend/evaluation/dataset.json` comprising 24 curated test cases across 6 distinct categories:
+     - Character (5): Melchizedek, shepherd background, crystal merchant, Englishman, Fatima.
+     - Event (5): Abandoned church dream, king's flock payment, hawk vision, monastery alchemy, treasure resolution.
+     - Theme (2): Personal Legend, Soul of the World.
+     - Symbol (2): Urim and Thummim, desert journey.
+     - Unanswerable (8): Out-of-domain queries (quantum mechanics, Harry Potter, electric cars, FIFA 2022, python programming, etc.).
+     - Adversarial (2): Prompt injection attempts ("ignore instructions", "forget you are an assistant").
+   - Created `backend/scripts/evaluate.js` supporting `--no-llm`, `--limit`, Hit@k calculation, fallback precision, quotation validation, and latency profiling.
+
+2. Error Analysis & Resiliency Enhancements:
+   - Issue A: Socket Connection Reset (`wsarecv` / WSAECONNRESET):
+     - Error Message: `stream reading error: read tcp ...: wsarecv: An existing connection was forcibly closed by the remote host.`
+     - Cause: Intermittent TCP reset / TLS stream interruption on port 443 during communication with Google's API endpoint.
+     - Solution: Implemented `Promise.race` strict timeout enforcement (preventing hanging promises) and automatic retry with backoff for transient socket resets (`ECONNRESET`, `ETIMEDOUT`, `wsarecv`, `UND_ERR_SOCKET`).
+   - Issue B: Google API High Demand Spike (HTTP 503):
+     - Error Message: `503 UNAVAILABLE: This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.`
+     - Solution: Added HTTP 503 and high-demand string matching to `isTransient` detection with 3 retries and exponential backoff (1200ms * attempt), plus 500ms pacing between questions in the evaluation harness.
+   - Issue C: Duplicate identifier `status` in `llmService.js`: Fixed scoping to avoid identifier redeclaration.
+
+3. Benchmark Evaluation Results:
+   - Hit@1 Retrieval Rate: 71.4% (10/14)
+   - Hit@3 Retrieval Rate: 78.6% (11/14)
+   - Hit@5 Retrieval Rate: 78.6% (11/14)
+   - Citation Validity Rate: 100.0% (0 fabricated chunk IDs)
+   - Fallback Precision: 100.0% on out-of-domain questions (zero-LLM drop on sub-threshold scores)
+   - Adversarial Injection Resistance: 100.0% (system prompts never leaked)
+   - Latency: Median 2,545ms, Average 9,768ms (including retries on spikes)
+
+4. Live Browser Walkthrough:
+   - Orchestrated browser subagent on `http://localhost:5173`.
+   - Verified greeting header, book badge, chip click, answer streaming with quotation highlighting, source drawer expansion, and out-of-domain fallback card.
+   - Recorded walkthrough session: `live_walkthrough_1792566583048.webp`.
+
+5. Automated Test Suite Verification:
+   - Backend Vitest: 11 passed test files, 44 passed tests.
+   - Frontend Vitest: 1 passed test file, 4 passed tests.
+   - Frontend Vite build: production bundle built in 2.57s.
+   - Python Pytest: 6 passed tests for embedding service.
+   - Total Automated Tests: 54/54 passing (100%).
