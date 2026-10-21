@@ -120,3 +120,26 @@ Summary:
    - Backend vitest tests: 7 test files, 29 tests passed (normalize, sectionParser, chunker, readSource, embeddingClient, chat validation, health).
    - Frontend vitest tests: 1 test file, 4 tests passed.
 
+[2026-10-21T06:15:00+05:30]
+Model: Gemini 3.8 Flash (High)
+Files Modified / Created:
+- chatlogs.txt
+
+Summary:
+1. Architecture Clarification: Role of Python vs. Node.js
+   - Python (`embedding-service/`): Dedicated microservice exclusively for local PyTorch neural network inference via `sentence-transformers/all-MiniLM-L6-v2`. Python loads the 90MB weights into RAM once on startup and generates 384-dimensional dense vectors on `POST /embed` with zero external API fees or cloud network latency.
+   - Node.js (`backend/` & `frontend/`): Application orchestrator. Node handles HTTP REST routes, input validation, chunking algorithms, Supabase pgvector database communication, prompt assembly, and Gemini LLM interactions. Node scripts send batches of text over local loopback (`http://127.0.0.1:8001`) to Python for vector encoding.
+
+2. Diagnostic & Error Analysis (Encountered & Resolved during Phase 2):
+   - Error 1: `[Errno 10048] error while attempting to bind on address ('127.0.0.1', 8001): only one usage of each socket address is normally permitted`
+     - Cause: A previous Python test process was still holding open TCP socket 8001 in Windows.
+     - Diagnosis: Inspected active listeners with PowerShell `Get-NetTCPConnection -LocalPort 8001`, identifying stale PID 8684.
+     - Fix: Terminated stale PID with `Stop-Process -Id 8684 -Force` and restarted uvicorn server daemon.
+   - Error 2: `AppError: Database credentials are not configured on the server` when executing commands from project root.
+     - Cause: `dotenv.config()` in `backend/src/config/env.js` defaulted to looking in `process.cwd()`, failing to locate `backend/.env` when invoked from root.
+     - Fix: Updated `backend/src/config/env.js` to resolve `path.resolve(__dirname, '../../.env')` with fallback to `process.cwd()`, ensuring consistent configuration regardless of execution directory.
+   - Note on Frontend Test Warning:
+     - Logged `Warning: An update to App inside a test was not wrapped in act(...)` in Vitest.
+     - Cause: Asynchronous initial health-check fetch in React `useChat` hook completed during test rendering. All assertions passed; will wrap fetch mocks in `act()` during UI test refinement.
+
+
