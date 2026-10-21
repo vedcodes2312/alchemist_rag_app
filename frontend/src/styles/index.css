@@ -1,0 +1,144 @@
+@import "tailwindcss";
+
+:root {
+  /* Colors */
+  --color-midnight: #171A24;
+  --color-desert-night: #22283A;
+  --color-parchment: #F4E9D5;
+  --color-sandstone: #D7B98E;
+  --color-gold: #C69B55;
+  --color-gold-bright: #E3BB78;
+  --color-terracotta: #A85C43;
+  --color-terracotta-soft: #E0907A;
+  --color-ink: #352B24;
+  --color-muted: #8A8175;
+  --color-muted-on-night: #A39A8C;
+  --color-muted-on-parchment: #6B6256;
+  --color-border-night: rgba(215, 185, 142, 0.18);
+  --color-border-strong: rgba(215, 185, 142, 0.35);
+  --color-overlay-hover: rgba(244, 233, 213, 0.06);
+
+  /* Typography */
+  --font-serif: "Cormorant Garamond", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --font-sans: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --text-display: clamp(2rem, 5vw, 3rem);
+  --text-h1: clamp(1.5rem, 3.5vw, 2rem);
+  --text-brand: 1.375rem;
+  --text-body: 1rem;
+  --text-body-lg: 1.0625rem;
+  --text-excerpt: 1.125rem;
+  --text-meta: 0.8125rem;
+  --text-label: 0.75rem;
+
+  /* Spacing & Radii */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  /* Shadows */
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.25), 0 6px 18px rgba(0, 0, 0, 0.28);
+  --shadow-composer: 0 -8px 24px rgba(23, 26, 36, 0.85);
+  --shadow-glow: 0 0 24px rgba(198, 155, 85, 0.25);
+
+  /* Layout */
+  --width-column: 760px;
+  --width-message: 68ch;
+  --header-height: 56px;
+
+  /* Focus */
+  --focus-ring: 0 0 0 2px #171A24, 0 0 0 4px #C69B55;
+  --focus-ring-on-parchment: 0 0 0 2px #F4E9D5, 0 0 0 4px #352B24;
+}
+
+@theme inline {
+  --color-midnight: var(--color-midnight);
+  --color-desert-night: var(--color-desert-night);
+  --color-parchment: var(--color-parchment);
+  --color-sandstone: var(--color-sandstone);
+  --color-gold: var(--color-gold);
+  --color-gold-bright: var(--color-gold-bright);
+  --color-terracotta: var(--color-terracotta);
+  --color-terracotta-soft: var(--color-terracotta-soft);
+  --color-ink: var(--color-ink);
+  --color-muted: var(--color-muted);
+  --color-muted-night: var(--color-muted-on-night);
+  --color-muted-parchment: var(--color-muted-on-parchment);
+  --font-serif: var(--font-serif);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-sans);
+  background-color: var(--color-midnight);
+  color: var(--color-parchment);
+}
+
+/* Atmospheric desert night background */
+.desert-sky {
+  background: radial-gradient(circle at 50% 120%, rgba(215, 185, 142, 0.12) 0%, rgba(34, 40, 58, 0.6) 45%, rgba(23, 26, 36, 1) 85%);
+}
+
+/* Accessible focus ring */
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.on-parchment button:focus-visible,
+.on-parchment [tabindex]:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring-on-parchment);
+}
+
+/* Keyframe animations */
+@keyframes dotPulse {
+  0%, 80%, 100% {
+    opacity: 0.25;
+    transform: scale(0.85);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+.animate-dot-1 {
+  animation: dotPulse 1.2s infinite ease-in-out;
+}
+.animate-dot-2 {
+  animation: dotPulse 1.2s infinite ease-in-out 0.2s;
+}
+.animate-dot-3 {
+  animation: dotPulse 1.2s infinite ease-in-out 0.4s;
+}
+
+@keyframes messageIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-message-in {
+  animation: messageIn 200ms cubic-bezier(0.2, 0, 0, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-dot-1, .animate-dot-2, .animate-dot-3, .animate-message-in {
+    animation: none !important;
+  }
+}
