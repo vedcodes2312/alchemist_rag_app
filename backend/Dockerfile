@@ -2,7 +2,7 @@
 # Alchemist AI — Express Backend Dockerfile
 # Node.js 20 Alpine lightweight container
 # ------------------------------------------------------------------------------
-FROM node:20-alpine
+FROM node:22-alpine
 
 # Set production environment
 ENV NODE_ENV=production
