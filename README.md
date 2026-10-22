@@ -46,7 +46,7 @@ flowchart LR
 
 Query flow: validate → embed question locally → cosine search in Supabase → drop results below the similarity threshold → (if none: fixed fallback, no LLM call) → Gemini with labeled evidence → validate output → build citations from retrieved chunk metadata → respond.
 
-Detailed diagrams (ingestion sequence, question sequence, error/fallback flow, deployment): [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+Detailed diagrams (ingestion sequence, question sequence, error/fallback flow, deployment): [`ARCHITECTURE.md`](ARCHITECTURE.md).
 
 ## 4. Technology Stack
 
@@ -63,7 +63,7 @@ Note: embeddings are local; **answer generation is not**. The app is not an offl
 
 ## 5. System Requirements
 
-Node.js (current LTS), Python 3.10–3.12, Git, a Supabase project, a Gemini API key, internet access, and an **authorized** plain-text copy of the book. See [`docs/TECH_STACK.md`](docs/TECH_STACK.md) and [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+Node.js (current LTS), Python 3.10–3.12, Git, a Supabase project, a Gemini API key, internet access, and an **authorized** plain-text copy of the book. See [`TECH_STACK.md`](TECH_STACK.md) and [`DEPLOYMENT.md`](DEPLOYMENT.md).
 
 ## 6. Repository Structure
 
@@ -89,100 +89,249 @@ alchemist-ai/
 
 | Document | Contents |
 |---|---|
-| [`docs/PRD.md`](docs/PRD.md) | Requirements (FR/NFR/AC), scope, risks, schedule |
-| [`docs/TECH_STACK.md`](docs/TECH_STACK.md) | Stack, env vars, model limits, rationale |
-| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Components, flows, prompt contract, Mermaid diagrams |
-| [`docs/API_SPECIFICATION.md`](docs/API_SPECIFICATION.md) | Endpoints, schemas, error codes |
-| [`docs/DATABASE_SCHEMA.md`](docs/DATABASE_SCHEMA.md) | Tables, `match_chunks`, RLS, migrations |
-| [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md) | Visual design and tokens |
-| [`docs/DESIGN_IMPLEMENTATION.md`](docs/DESIGN_IMPLEMENTATION.md) | Components and Tailwind implementation rules |
-| [`docs/AGENT_INSTRUCTIONS.md`](docs/AGENT_INSTRUCTIONS.md) | Instructions for the coding agent |
-| [`docs/EVALUATION_PLAN.md`](docs/EVALUATION_PLAN.md) | Test sets, metrics, procedures |
-| [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | Local setup and production deployment |
+| [`PRD.md`](PRD.md) | Product Requirements Document (FR/NFR/AC), scope, schedule |
+| [`TECH_STACK.md`](TECH_STACK.md) | Stack rationale, environment variables, model constraints |
+| [`ARCHITECTURE.md`](ARCHITECTURE.md) | System components, Mermaid sequence flows, prompt contract |
+| [`DATABASE_SCHEMA.md`](DATABASE_SCHEMA.md) | Tables, `match_chunks` RPC, pgvector, RLS security |
+| [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md) | Desert-night & parchment palette, typography, tokens |
+| [`DESIGN_IMPLEMENTATION.md`](DESIGN_IMPLEMENTATION.md) | Component architecture and Tailwind v4 guidelines |
+| [`AGENT_INSTRUCTIONS.md`](AGENT_INSTRUCTIONS.md) | Autonomous engineering rules and phase deliverables |
+| [`EVALUATION_PLAN.md`](EVALUATION_PLAN.md) | Benchmark evaluation harness, dataset, and metrics |
 
-## 8. Setup Instructions
+---
 
-> These commands describe the intended workflow and will be validated once the code exists.
+## 8. Local Setup Instructions
 
+You can run the entire application locally on **Windows (PowerShell)**, **macOS**, or **Linux**.
+
+### Prerequisites
+* **Node.js**: v20+ or current LTS (`node --version`)
+* **Python**: 3.10 to 3.12 (`python --version`)
+* **Git**: (`git --version`)
+* **Supabase Project**: Free tier PostgreSQL database with `pgvector` enabled.
+* **Google Gemini API Key**: Free tier Gemini API key with access to Gemini 3.8 Flash (`gemini-3.8-flash` / `gemini-3-flash-preview`).
+
+---
+
+### Step-by-Step Local Installation
+
+#### 1. Clone Repository & Install Node Dependencies
 ```bash
-git clone <repo-url> alchemist-ai && cd alchemist-ai
+git clone https://github.com/vedcodes2312/alchemist_rag_app.git
+cd alchemist_rag_app
 
-# Node dependencies
-(cd backend && npm install)
-(cd frontend && npm install)
-
-# Python environment
-cd embedding-service
-python -m venv .venv
-source .venv/bin/activate            # Windows PowerShell: .venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-cd ..
+# Install dependencies across root, backend, and frontend with one command:
+npm run install:all
 ```
 
-## 9. Environment Variables
+#### 2. Set Up Python Embedding Environment
 
-Copy the sectioned `.env.example` into `backend/.env` (backend section), `frontend/.env` (frontend section), and the embedding service environment. **Never commit `.env` files.**
+* **On Windows (PowerShell)**:
+  ```powershell
+  cd embedding-service
+  python -m venv .venv
+  .\.venv\Scripts\Activate.ps1
+  pip install --upgrade pip
+  pip install -r requirements.txt
+  cd ..
+  ```
 
-| Variable | Where | Purpose |
+* **On macOS / Linux**:
+  ```bash
+  cd embedding-service
+  python3 -m venv .venv
+  source .venv/bin/activate
+  pip install --upgrade pip
+  pip install -r requirements.txt
+  cd ..
+  ```
+
+---
+
+## 9. Environment Variables Configuration
+
+Copy `.env.example` into both `backend/.env` and `frontend/.env`:
+
+* **On Windows (PowerShell)**:
+  ```powershell
+  Copy-Item .env.example backend/.env
+  Copy-Item .env.example frontend/.env
+  ```
+
+* **On macOS / Linux**:
+  ```bash
+  cp .env.example backend/.env
+  cp .env.example frontend/.env
+  ```
+
+Configure the following secrets in `backend/.env`:
+
+| Variable | Required | Description |
 |---|---|---|
-| `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | backend | Database access (**server secret**) |
-| `GEMINI_API_KEY`, `GEMINI_MODEL` | backend | Generation (**key is a secret**; set the model ID from current Google docs) |
-| `EMBEDDING_SERVICE_URL`, `EMBEDDING_SERVICE_API_KEY` | backend | Local Python service address and optional key |
-| `RETRIEVAL_TOP_K`, `SIMILARITY_THRESHOLD` | backend | Retrieval tuning (threshold default 0.30 is an **untuned placeholder**) |
-| `CHUNK_TARGET_TOKENS`, `CHUNK_OVERLAP_TOKENS` | backend | Chunking (defaults 220 / 40) |
-| `CORS_ALLOWED_ORIGINS`, `PORT`, `NODE_ENV`, rate-limit and length caps | backend | Server config |
-| `VITE_API_BASE_URL` | frontend | API base (default `/api`) |
+| `SUPABASE_URL` | **Yes** | Your Supabase project URL (`https://<project>.supabase.co`) |
+| `SUPABASE_SERVICE_ROLE_KEY` | **Yes** | Supabase service-role secret key (bypasses RLS safely on server) |
+| `GEMINI_API_KEY` | **Yes** | Google AI Studio Gemini API key |
+| `GEMINI_MODEL` | No | Defaults to `gemini-3.8-flash` |
+| `EMBEDDING_SERVICE_URL` | No | Defaults to `http://127.0.0.1:8001` |
+| `PORT` | No | Backend port (default `3001`) |
+| `CORS_ALLOWED_ORIGINS` | No | Allowed frontend origin (default `http://localhost:5173`) |
 
-Full table with defaults: [`docs/TECH_STACK.md`](docs/TECH_STACK.md) §9.
+---
 
-## 10. Supabase Configuration
+## 10. Database Migrations (Supabase pgvector)
 
-1. Create a project.
-2. Apply `supabase/migrations/0001_*.sql` and `0002_*.sql` (SQL editor or `supabase db push`).
-3. Put the project URL and service-role key in `backend/.env`.
-4. Confirm that the `anon` key cannot read `chunks` or call `match_chunks`.
+In the [Supabase SQL Editor](https://app.supabase.com), apply the 4 migration scripts in sequence from the `supabase/migrations/` directory:
 
-Details and SQL: [`docs/DATABASE_SCHEMA.md`](docs/DATABASE_SCHEMA.md).
+1. `0001_create_chunks.sql` — Enables `vector` extension, creates `documents` and `chunks` tables.
+2. `0002_create_match_chunks.sql` — Creates `match_chunks` RPC function using cosine distance (`<=>`).
+3. `0003_secure_rls.sql` — Enforces Row Level Security (RLS) restricting chunk reads to `service_role`.
+4. `0004_create_chat_history.sql` — Creates `chat_sessions` and `chat_messages` tables for persistent thread history.
 
-## 11. Local Embedding Service Setup
+---
 
+## 11. Running the Application Locally
+
+The app runs across 3 cooperating services. Run each in a separate terminal:
+
+### Terminal 1: Python Embedding Service (Port 8001)
+* **On Windows (PowerShell)**:
+  ```powershell
+  .\embedding-service\.venv\Scripts\uvicorn.exe main:app --host 127.0.0.1 --port 8001 --app-dir embedding-service
+  ```
+* **On macOS / Linux**:
+  ```bash
+  source embedding-service/.venv/bin/activate
+  uvicorn main:app --host 127.0.0.1 --port 8001 --app-dir embedding-service
+  ```
+*Verify health check*: `curl http://127.0.0.1:8001/health` (returns `{"status":"ok","model":"...","dimension":384}`).
+
+### Terminal 2: Full-Stack App (Backend + Frontend)
+From the project root:
 ```bash
-cd embedding-service
-source .venv/bin/activate
-uvicorn main:app --host 127.0.0.1 --port 8001
-curl http://127.0.0.1:8001/health      # expect dimension 384
+npm run dev
 ```
+*(This concurrently starts the Express backend on `http://localhost:3001` and Vite frontend on `http://localhost:5173`)*.
 
-The first run downloads the model (about 90 MB) to the Hugging Face cache; the cache must not be committed.
+Open `http://localhost:5173` in your browser.
 
-## 12. Frontend and Backend Startup
+---
 
-```bash
-# Terminal 2
-cd backend && npm run dev          # http://localhost:3001
+## 12. How to Re-Index or Ingest Book Text
 
-# Terminal 3
-cd frontend && npm run dev         # http://localhost:5173
-```
-
-## 13. How to Build the Book Index
-
-1. Obtain an **authorized** plain-text copy of the book (see §17). Save it as `backend/data/source/<file>.txt`. This folder is gitignored.
-2. Optionally mark sections with `## Label` lines so source cards can show chapter/section labels.
-3. Run:
+To index an authorized plain-text copy of the book:
 
 ```bash
 cd backend
 npm run ingest -- --file data/source/<file>.txt --title "The Alchemist" --reset
-curl http://localhost:3001/api/book/info
 ```
 
-`--dry-run` parses and chunks without embedding or writing. The embedding service must be running for a real ingest.
+* `--dry-run`: Parses and chunks the text to verify token counts without writing to Supabase.
+* `--reset`: Idempotently clears previous chunk vectors for the book and writes fresh 384-d vectors.
 
-## 14. How to Run Tests
+---
+
+## 13. Docker & Docker Compose Setup (1-Command Run)
+
+If you have Docker Desktop installed, you can build and run all 3 services with a single command:
 
 ```bash
-# Run all automated tests (54 passing tests)
+# 1. Create root .env with your secrets
+cp .env.example .env
+# Edit .env with your SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and GEMINI_API_KEY
+
+# 2. Build and start containers
+docker compose up -d --build
+
+# 3. View logs
+docker compose logs -f
+```
+
+### Container Endpoints:
+* **Frontend Web App**: `http://localhost` (Port 80 via Nginx reverse proxy)
+* **Backend API**: `http://localhost:3001/api/health`
+* **Embedding Service**: `http://localhost:8001/health`
+
+---
+
+## 14. AWS EC2 Cloud Hosting Guide (For Windows Users)
+
+Deploying to AWS Free Tier (`t2.micro` or `t3.micro` instance, 1GB RAM, 30GB gp3 disk, $0.00/month):
+
+### Step 1: Launch an AWS EC2 Virtual Machine
+1. Log in to the [AWS Management Console](https://console.aws.amazon.com/).
+2. Navigate to **EC2** → **Launch Instance**.
+3. **Name**: `alchemist-ai-server`
+4. **OS**: **Ubuntu Server 24.04 LTS (HVM), SSD Volume Type** (Free Tier eligible).
+5. **Instance Type**: `t2.micro` (or `t3.micro` depending on your AWS region).
+6. **Key Pair**: Select or create a new key pair (e.g. `alchemist-key.pem`). Download and save it on your Windows PC (e.g. in `C:\Users\YourUser\.ssh\`).
+7. **Network Settings**: Check:
+   * Allow SSH traffic from Anywhere (`0.0.0.0/0`)
+   * Allow HTTP traffic from the internet (`0.0.0.0/0`)
+   * Allow HTTPS traffic from the internet (`0.0.0.0/0`)
+8. **Storage**: Configure **30 GiB gp3** (Free Tier allows up to 30 GiB EBS).
+9. Click **Launch Instance**.
+
+### Step 2: Connect to the Server from Windows
+You have two easy ways to connect:
+* **Option A (In-Browser with 1 Click)**: On the EC2 Console, select your instance and click **Connect** → **EC2 Instance Connect** → **Connect**. A web terminal will open instantly!
+* **Option B (From Windows PowerShell)**:
+  ```powershell
+  ssh -i "C:\Users\YourUser\.ssh\alchemist-key.pem" ubuntu@<YOUR-EC2-PUBLIC-IP>
+  ```
+
+### Step 3: Configure 2GB Swap Memory (Crucial for 1GB RAM instances)
+In your EC2 terminal, run this once to prevent Out-Of-Memory errors during container builds:
+```bash
+sudo fallocate -l 2G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+```
+
+### Step 4: Install Docker & Docker Compose on Ubuntu
+```bash
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y docker.io docker-compose-v2 git
+sudo usermod -aG docker ubuntu
+newgrp docker
+```
+
+### Step 5: Clone the Repository & Configure Secrets
+```bash
+git clone https://github.com/vedcodes2312/alchemist_rag_app.git
+cd alchemist_rag_app
+
+# Create .env file on the server
+nano .env
+```
+Paste your production environment variables:
+```env
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
+GEMINI_API_KEY=your-gemini-api-key
+GEMINI_MODEL=gemini-3.8-flash
+```
+Save with `Ctrl + O`, `Enter`, and exit with `Ctrl + X`.
+
+### Step 6: Launch the Stack
+```bash
+docker compose up -d --build
+```
+
+### Step 7: Access Your Live Application
+Open your browser and navigate to:
+```
+http://<YOUR-EC2-PUBLIC-IP>
+```
+Your Alchemist AI companion is now live on the internet!
+
+---
+
+## 15. How to Run Tests
+
+```bash
+# Run all automated unit and integration tests (54 passing tests)
 npm test                  # runs backend vitest (44 tests) and frontend vitest (4 tests)
 npm run test:embedding    # runs Python pytest (6 tests)
 
@@ -205,47 +354,37 @@ Evaluated against `backend/evaluation/dataset.json` (14 answerable questions acr
 | **Adversarial Jailbreak Resistance** | $100\%$ | **100.0%** | System instructions never revealed; prompt injection rejected |
 | **Median Latency** | $< 3500\text{ms}$ | **2,545ms** | Real-time interactive generation |
 
-## 15. How to Use the Application
+---
 
-1. Open `http://localhost:5173`.
+## 16. How to Use the Application
+
+1. Open `http://localhost:5173` (or `http://localhost` with Docker).
 2. Tap a suggested question or type your own (Enter sends, Shift+Enter adds a line).
-3. Read the answer: **From the text** is what the passages state; **Interpretation** is a reading of it.
-4. Open **Sources** to see the passages the answer relied on, with chapter/section label (when available) and a relevance score.
-5. If the book doesn't support an answer, the app says so instead of guessing.
+3. Read the answer: **From the text** is strictly what the passages state; **Interpretation** is a philosophical reading of it.
+4. Open **Consulted Passages** to inspect the source excerpts, section labels, and cosine relevance scores.
+5. Access past threads or start a fresh thread anytime using the **Journal Sidebar**.
 
-*Screenshots (to be added after implementation):*
-
-| Welcome screen | Answer with sources | Fallback |
-|---|---|---|
-| `docs/screenshots/welcome.png` *(placeholder)* | `docs/screenshots/answer.png` *(placeholder)* | `docs/screenshots/fallback.png` *(placeholder)* |
-
-## 16. Limitations (current and by design)
-
-- **Not yet implemented** (see status table).
-- Single-turn Q&A: follow-up questions don't carry context.
-- `all-MiniLM-L6-v2` truncates input at 256 tokens, so chunks default to ~220 tokens; retrieval quality depends on chunking and has not been evaluated yet.
-- The similarity threshold is an untuned placeholder until the evaluation is run.
-- Similarity scores are ranking signals, not probabilities of correctness.
-- Answer quality and groundedness depend on Gemini; the backend verifies citations and quotations but cannot prove every claim is supported (manual review is part of the evaluation).
-- Answers require internet access (Gemini, Supabase).
-- Free-tier quotas and inactivity policies of the external services can interrupt a demo.
-- Section labels come from the source file's markers; the book is not necessarily divided into numbered chapters, and page numbers exist only if the source provides them.
-- Questions are sent to Gemini (a third-party service).
+---
 
 ## 17. Copyright and Source-Document Handling
 
 *The Alchemist* is a copyrighted work. This repository **does not and must not** contain the book's full text.
 
-- Supply your own **authorized** source file locally (a lawfully obtained copy for development, text provided or permitted for the assignment, or a permitted excerpt). It is gitignored.
-- Tests use an **original synthetic** sample text, not the book.
+- Supply your own **authorized** source file locally (`backend/data/source/<file>.txt`, gitignored).
+- Automated tests use an **original synthetic sample text**, not the copyrighted book text.
 - Responses cap each excerpt at a configurable length (default 800 characters).
 - Anyone rebuilding the index needs their own authorized text.
 - Confirm with Rewamp Digital that a public deployment returning book excerpts is acceptable before publishing one. This README is not legal advice.
 
-## 18. Deployment Guidance
+---
 
-A remote backend cannot reach a Python service on your laptop. For a public demo, host the embedding service separately (container with the model baked in, protected by `X-API-Key`), the backend on a Node host, and the frontend on static hosting, with ingestion run from your machine against the production Supabase project. Free tiers have limits that change; verify them. If a public demo isn't viable, submit a recorded demo with local run instructions. Full guidance: [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+## 18. Implemented Enhancements & Roadmap
 
-## 19. Future Improvements
+* [x] **Database Chat Persistence**: Supabase PostgreSQL tables (`chat_sessions`, `chat_messages`) under Row Level Security.
+* [x] **Interactive Journal Sidebar**: Thread listing, active selection, conversation switching, and deletion.
+* [x] **Literary Dark UI**: Parchment cards, gold accents, quotation highlights, and decoupled smooth scrollbar.
+* [x] **Gemini 3.8 Flash**: High-speed, high-fidelity reasoning with anti-hallucination guardrails.
+* [ ] Multi-turn query rewriting.
+* [ ] Streaming token generation (SSE).
+* [ ] Full book passage explorer.
 
-Conversation persistence; follow-up question rewriting; searchable source explorer; retrieval diagnostics panel; evaluation dashboard; reranking; streaming responses; multi-book support; authentication; local LLM option. None is part of the MVP.

@@ -332,3 +332,31 @@ Summary:
      - Auto-scroll smoothly scrolls new answers into view above the dock.
      - Bidirectional user scrolling (scrolling up to read previous questions/answers and scrolling down to the latest message) operates smoothly and independently.
      - Expanding "Consulted Passages" expands seamlessly without layout displacement.
+
+[2026-10-22T10:45:00+05:30]
+Model: Gemini 3.8 Flash (High)
+Files Modified / Created:
+- embedding-service/Dockerfile
+- embedding-service/.dockerignore
+- backend/Dockerfile
+- backend/.dockerignore
+- frontend/Dockerfile
+- frontend/nginx.conf
+- frontend/.dockerignore
+- docker-compose.yml
+- .dockerignore
+- DEPLOYMENT.md
+- README.md
+- chatlogs.txt
+
+Summary:
+1. Docker Containerization:
+   - `embedding-service/Dockerfile`: Python 3.11 slim image with CPU-only PyTorch and pre-downloaded `all-MiniLM-L6-v2` model baked into image to avoid startup latency.
+   - `backend/Dockerfile`: Node.js 20 Alpine image running Express RAG orchestration service with healthcheck.
+   - `frontend/Dockerfile` & `frontend/nginx.conf`: Multi-stage build compiling Vite production bundle and serving via Nginx Alpine with `/api/` reverse proxy and SPA routing.
+   - `docker-compose.yml`: Root orchestrator linking the 3 services with network bridges, memory limits (600M embedding, 250M backend, 100M frontend) tailored for AWS Free Tier `t2.micro` / `t3.micro`.
+   - Comprehensive `.dockerignore` files created across root, backend, frontend, and embedding service.
+
+2. Documentation & Local Instructions Refinement:
+   - `DEPLOYMENT.md`: Created standalone comprehensive guide for local Docker and AWS Free Tier deployment.
+   - `README.md`: Updated Section 8-14 with detailed, step-by-step local instructions for Windows PowerShell & macOS/Linux, 4 Supabase migrations guide, 1-command Docker Compose run, and Windows-friendly AWS EC2 launch tutorial.
