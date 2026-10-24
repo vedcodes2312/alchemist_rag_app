@@ -21,4 +21,29 @@ describe('Health API', () => {
     expect(res.body).toHaveProperty('dimension', 384);
     expect(res.body).toHaveProperty('indexReady');
   });
+
+  it('GET /openapi.json returns 200 and valid OpenAPI 3.0.3 spec', async () => {
+    const res = await request(app).get('/openapi.json');
+
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty('openapi', '3.0.3');
+    expect(res.body.info).toHaveProperty('title');
+    expect(res.body.paths).toHaveProperty('/api/chat');
+  });
+
+  it('GET /demo returns 200 with HTML developer playground', async () => {
+    const res = await request(app).get('/demo');
+
+    expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toContain('text/html');
+    expect(res.text).toContain('THE ALCHEMIST AI');
+  });
+
+  it('GET / redirects to /demo', async () => {
+    const res = await request(app).get('/');
+
+    expect(res.status).toBe(302);
+    expect(res.headers.location).toBe('/demo');
+  });
 });
+

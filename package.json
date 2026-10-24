@@ -14,6 +14,7 @@
     "test": "npm run test:backend && npm run test:frontend",
     "ingest": "npm --prefix backend run ingest --",
     "evaluate": "npm --prefix backend run evaluate --",
+    "api:demo": "node backend/scripts/api-demo.js",
     "install:all": "npm install && npm --prefix backend install && npm --prefix frontend install"
   },
   "devDependencies": {

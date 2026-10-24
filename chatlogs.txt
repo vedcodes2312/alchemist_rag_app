@@ -360,3 +360,23 @@ Summary:
 2. Documentation & Local Instructions Refinement:
    - `DEPLOYMENT.md`: Created standalone comprehensive guide for local Docker and AWS Free Tier deployment.
    - `README.md`: Updated Section 8-14 with detailed, step-by-step local instructions for Windows PowerShell & macOS/Linux, 4 Supabase migrations guide, 1-command Docker Compose run, and Windows-friendly AWS EC2 launch tutorial.
+
+3. Local API & Standalone UI Demo Playground Implementation:
+   - `backend/src/docs/openapi.json`: Comprehensive OpenAPI 3.0.3 specification covering all endpoints (`/api/chat`, `/api/book/info`, `/api/health`, `/api/chat/sessions`), request/response schemas, citations, and error structures.
+   - `backend/src/public/demo.html`: Zero-build, responsive Developer Playground & UI Demo served by Express at `http://localhost:3001/demo`. Features side-by-side view of rendered answers (with quotation highlights and consulted pgvector chunks) and live API response inspector (syntax-highlighted JSON, cURL generator, and latency metrics).
+   - `backend/src/app.js`: Mounted Swagger UI at `/docs` and `/api-docs`, raw OpenAPI spec at `/openapi.json`, static assets at `/public`, and standalone UI demo at `/demo` (with root redirect `/` -> `/demo`). Configured Helmet CSP to allow inline assets.
+   - `backend/scripts/api-demo.js`: Interactive terminal CLI API demo script (`npm run api:demo`) verifying health, book index, grounded Q&A, guardrail fallbacks, and Supabase chat history with automated ephemeral server fallback.
+   - `alchemist_api.postman_collection.json`: Complete, exportable Postman 2.1 collection with parameterized baseUrl, query test cases, and session threading.
+   - `examples/python_client.py` & `examples/node_client.js`: Production-ready client scripts demonstrating programmatic API consumption.
+   - `backend/tests/health.test.js`: Added 3 automated tests verifying `/openapi.json`, `/demo`, and `/` redirect (5/5 tests passing).
+   - Upgraded Dockerfiles to `node:22-alpine` for native global WebSocket support with Supabase.
+
+4. Main UI API Integration & Root Documentation Package:
+   - `frontend/src/components/ApiModal.jsx`: Created interactive API reference and cURL generator dialog in the React app. Features code snippets for cURL, JavaScript `fetch`, and Python `requests`, with one-click clipboard copying and live navigation links to `/docs` and `/demo`.
+   - `frontend/src/components/AppHeader.jsx`: Added prominent `API` button with `Terminal` icon in top navigation.
+   - `frontend/src/components/MessageBubble.jsx`: Added per-message `cURL` copy action on every assistant answer card so users can reproduce any question directly in terminal.
+   - `docs/`: Created master documentation directory in the root directory containing 11 specifications: `README.md`, `API.md`, `PRD.md`, `ARCHITECTURE.md`, `DATABASE_SCHEMA.md`, `DESIGN_SYSTEM.md`, `DESIGN_IMPLEMENTATION.md`, `TECH_STACK.md`, `EVALUATION_PLAN.md`, `DEPLOYMENT.md`, and `openapi.json`.
+   - `README.md`: Updated to document the Main UI API modal, per-message cURL copying, root `docs/` repository structure, and full API manual links.
+   - `frontend/src/test/App.test.jsx`: Added test case verifying API button rendering and dialog opening (5/5 tests passing).
+
+

@@ -61,42 +61,89 @@ Detailed diagrams (ingestion sequence, question sequence, error/fallback flow, d
 
 Note: embeddings are local; **answer generation is not**. The app is not an offline application.
 
-## 5. System Requirements
+## 5. Local API, Standalone UI Playground & Documentation
 
-Node.js (current LTS), Python 3.10–3.12, Git, a Supabase project, a Gemini API key, internet access, and an **authorized** plain-text copy of the book. See [`TECH_STACK.md`](TECH_STACK.md) and [`DEPLOYMENT.md`](DEPLOYMENT.md).
+The entire RAG system can be explored, evaluated, and consumed purely as a **local API** with zero dependency on the Vite React build. In addition, the main React application provides instant API access and cURL command copying:
 
-## 6. Repository Structure
+| Interface | URL / Command | Description |
+|---|---|---|
+| **Main React UI "API" Modal** | Top navigation `API` button (`:5173` or `:80`) | Click the **API** button in the header (or the **cURL** button on any answer card) to view and copy executable cURL commands, fetch/Python snippets, and documentation links. |
+| **Standalone UI Demo & Playground** | [`http://localhost:3001/demo`](http://localhost:3001/demo) | Zero-build, responsive developer console served by Express. Execute preset or custom queries with side-by-side formatted answers, quotation callouts, pgvector similarity scores, and live raw JSON inspection. |
+| **Interactive Swagger UI Docs** | [`http://localhost:3001/docs`](http://localhost:3001/docs) | Full OpenAPI 3.0.3 documentation with interactive "Try it out" runners for every endpoint. |
+| **OpenAPI 3.0.3 Spec (JSON)** | [`http://localhost:3001/openapi.json`](http://localhost:3001/openapi.json) | Machine-readable API schema for automated code generation and SDK tools. |
+| **Complete API Reference Manual** | [`docs/API.md`](docs/API.md) | In-depth REST documentation detailing request/response schemas, validation rules, rate limits, and cURL recipes. |
+| **Documentation Package Index** | [`docs/README.md`](docs/README.md) | Centralized index of all architecture, database, design, and evaluation specifications located in `docs/`. |
+| **Automated Terminal CLI Demo** | `npm run api:demo` | Pretty-printed terminal walk-through probing health, book metadata, grounded Q&A, out-of-domain fallback, and Supabase conversation history. |
+| **Postman Collection** | [`alchemist_api.postman_collection.json`](alchemist_api.postman_collection.json) | Ready-to-import collection with preconfigured endpoints, query variables, and test payloads. |
+| **Python Client Example** | `python examples/python_client.py` | Minimal Python client using standard library HTTP to query the RAG pipeline. |
+| **Node.js Client Example** | `node examples/node_client.js` | Minimal modern ESM Node.js script consuming the `/api/chat` endpoint. |
+
+### Running the Local API & UI Demo
+
+```bash
+# 1. Start the backend service
+npm run dev:backend
+
+# 2. In your browser:
+# Open http://localhost:3001/demo  --> Standalone Developer Playground
+# Open http://localhost:3001/docs  --> Interactive Swagger UI
+
+# 3. Or run the terminal demo script:
+npm run api:demo
+```
+
+## 6. System Requirements
+
+Node.js (current LTS), Python 3.10–3.12, Git, a Supabase project, a Gemini API key, internet access, and an **authorized** plain-text copy of the book. See [`docs/TECH_STACK.md`](docs/TECH_STACK.md) and [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+
+## 7. Repository Structure
 
 ```text
 alchemist-ai/
+├── docs/                # Comprehensive documentation package
+│   ├── README.md        # Master documentation index
+│   ├── API.md           # Complete REST API reference manual
+│   ├── PRD.md           # Product Requirements Document
+│   ├── ARCHITECTURE.md  # Architecture, sequence flows, prompt contract
+│   ├── DATABASE_SCHEMA.md # Supabase PostgreSQL & pgvector schema
+│   ├── DESIGN_SYSTEM.md # Desert-night design tokens and typography
+│   ├── DESIGN_IMPLEMENTATION.md # Component hierarchy & layout rules
+│   ├── TECH_STACK.md    # Technology selection & dependencies
+│   ├── EVALUATION_PLAN.md # 24-question benchmark evaluation harness
+│   ├── DEPLOYMENT.md    # Docker Compose and AWS deployment guide
+│   └── openapi.json     # OpenAPI 3.0.3 specification
 ├── frontend/            # React + Vite app (src/components, hooks, services, styles)
 ├── backend/             # Express API, ingestion scripts, tests, evaluation
 │   ├── src/             # config, routes, controllers, services, prompts, middleware, errors
-│   ├── scripts/         # ingest.js, evaluate.js
+│   ├── scripts/         # ingest.js, evaluate.js, api-demo.js
 │   ├── data/source/     # your authorized text (gitignored)
 │   ├── evaluation/      # dataset.json (results gitignored)
 │   └── tests/           # unit/integration tests, synthetic fixtures
 ├── embedding-service/   # FastAPI + Sentence Transformers
 ├── supabase/migrations/ # SQL migrations
-├── docs/                # PRD, tech stack, architecture, design, API, DB, evaluation, deployment
+├── examples/            # python_client.py, node_client.js
+├── alchemist_api.postman_collection.json # Exportable Postman collection
 ├── .env.example
 ├── .gitignore
 ├── package.json
 └── README.md
 ```
 
-## 7. Documentation Index
+## 8. Documentation Index
+
+The complete documentation package is housed in the [`docs/`](docs/) directory:
 
 | Document | Contents |
 |---|---|
-| [`PRD.md`](PRD.md) | Product Requirements Document (FR/NFR/AC), scope, schedule |
-| [`TECH_STACK.md`](TECH_STACK.md) | Stack rationale, environment variables, model constraints |
-| [`ARCHITECTURE.md`](ARCHITECTURE.md) | System components, Mermaid sequence flows, prompt contract |
-| [`DATABASE_SCHEMA.md`](DATABASE_SCHEMA.md) | Tables, `match_chunks` RPC, pgvector, RLS security |
-| [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md) | Desert-night & parchment palette, typography, tokens |
-| [`DESIGN_IMPLEMENTATION.md`](DESIGN_IMPLEMENTATION.md) | Component architecture and Tailwind v4 guidelines |
-| [`AGENT_INSTRUCTIONS.md`](AGENT_INSTRUCTIONS.md) | Autonomous engineering rules and phase deliverables |
-| [`EVALUATION_PLAN.md`](EVALUATION_PLAN.md) | Benchmark evaluation harness, dataset, and metrics |
+| [`docs/API.md`](docs/API.md) | REST API reference, endpoints, cURL recipes, and schemas |
+| [`docs/PRD.md`](docs/PRD.md) | Product Requirements Document (FR/NFR/AC), scope, schedule |
+| [`docs/TECH_STACK.md`](docs/TECH_STACK.md) | Stack rationale, environment variables, model constraints |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | System components, Mermaid sequence flows, prompt contract |
+| [`docs/DATABASE_SCHEMA.md`](docs/DATABASE_SCHEMA.md) | Tables, `match_chunks` RPC, pgvector, RLS security |
+| [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md) | Desert-night & parchment palette, typography, tokens |
+| [`docs/DESIGN_IMPLEMENTATION.md`](docs/DESIGN_IMPLEMENTATION.md) | Component architecture and Tailwind v4 guidelines |
+| [`docs/EVALUATION_PLAN.md`](docs/EVALUATION_PLAN.md) | Benchmark evaluation harness, dataset, and metrics |
+| [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | Local Docker Compose and AWS Free Tier deployment guide |
 
 ---
 

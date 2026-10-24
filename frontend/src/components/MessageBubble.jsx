@@ -8,6 +8,7 @@ import {
   Check,
   User,
   Quote,
+  Terminal,
 } from 'lucide-react';
 import { SourceCard } from './SourceCard.jsx';
 
@@ -41,6 +42,7 @@ export function MessageBubble({ message }) {
   const {
     role,
     variant = 'answer',
+    question,
     content,
     interpretation,
     sources = [],
@@ -49,6 +51,7 @@ export function MessageBubble({ message }) {
 
   const [showSources, setShowSources] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [curlCopied, setCurlCopied] = useState(false);
 
   const handleCopy = async () => {
     try {
@@ -61,6 +64,16 @@ export function MessageBubble({ message }) {
       await navigator.clipboard.writeText(fullText);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    } catch (_err) {}
+  };
+
+  const handleCopyCurl = async () => {
+    try {
+      const q = question || 'What is a Personal Legend according to Melchizedek?';
+      const curl = `curl -X POST http://localhost:3001/api/chat \\\n  -H "Content-Type: application/json" \\\n  -d '{"question": ${JSON.stringify(q)}}'`;
+      await navigator.clipboard.writeText(curl);
+      setCurlCopied(true);
+      setTimeout(() => setCurlCopied(false), 2000);
     } catch (_err) {}
   };
 
@@ -135,24 +148,44 @@ export function MessageBubble({ message }) {
               </span>
             </div>
 
-            {/* Copy Button */}
-            <button
-              onClick={handleCopy}
-              className="flex items-center gap-1.5 text-[11px] text-[#A6ADB8] hover:text-[#E5A93C] px-2 py-1 rounded-md hover:bg-[#22283A] transition-colors cursor-pointer"
-              title="Copy answer to clipboard"
-            >
-              {copied ? (
-                <>
-                  <Check className="w-3 h-3 text-emerald-400" />
-                  <span className="text-emerald-400">Copied</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="w-3 h-3" />
-                  <span>Copy</span>
-                </>
-              )}
-            </button>
+            {/* Action Buttons: Copy cURL and Copy Text */}
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={handleCopyCurl}
+                className="flex items-center gap-1 text-[11px] text-[#A6ADB8] hover:text-[#E5A93C] px-2 py-1 rounded-md hover:bg-[#22283A] transition-colors cursor-pointer"
+                title="Copy API cURL command for this query"
+              >
+                {curlCopied ? (
+                  <>
+                    <Check className="w-3 h-3 text-emerald-400" />
+                    <span className="text-emerald-400 font-medium">cURL Copied</span>
+                  </>
+                ) : (
+                  <>
+                    <Terminal className="w-3 h-3 text-[#E5A93C]" />
+                    <span>cURL</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                onClick={handleCopy}
+                className="flex items-center gap-1.5 text-[11px] text-[#A6ADB8] hover:text-[#E5A93C] px-2 py-1 rounded-md hover:bg-[#22283A] transition-colors cursor-pointer"
+                title="Copy answer to clipboard"
+              >
+                {copied ? (
+                  <>
+                    <Check className="w-3 h-3 text-emerald-400" />
+                    <span className="text-emerald-400">Copied</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3 h-3" />
+                    <span>Copy</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
 
           <div className="space-y-3 font-sans text-[15px] sm:text-base leading-relaxed">

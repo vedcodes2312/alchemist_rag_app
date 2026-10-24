@@ -1,0 +1,240 @@
+{
+  "info": {
+    "name": "The Alchemist AI — RAG API",
+    "_postman_id": "a823e590-bdf1-4a88-8547-09f193cb9988",
+    "description": "Production-grade Retrieval-Augmented Generation (RAG) API for Paulo Coelho's *The Alchemist*. Integrates local 384-dimensional SentenceTransformer embeddings, Supabase PostgreSQL pgvector cosine similarity search, and Google Gemini 3.8 Flash for strictly grounded literary question answering.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3001",
+      "type": "string"
+    },
+    {
+      "key": "sessionId",
+      "value": "00000000-0000-0000-0000-000000000000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health & System",
+      "item": [
+        {
+          "name": "Liveness Probe (GET /api/health)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "health"]
+            },
+            "description": "Quick liveness check returning service name, status, and timestamp."
+          }
+        },
+        {
+          "name": "Deep Health Probe (GET /api/health?deep=true)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/health?deep=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "health"],
+              "query": [
+                {
+                  "key": "deep",
+                  "value": "true"
+                }
+              ]
+            },
+            "description": "Comprehensive diagnostics probing Supabase database connectivity, pgvector readiness, and SentenceTransformer embedding service status."
+          }
+        },
+        {
+          "name": "Book Metadata & Index Readiness (GET /api/book/info)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/book/info",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "book", "info"]
+            },
+            "description": "Returns document slug ('the-alchemist'), title, embedding dimension (384), indexed chunk count (303), and readiness flag."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Chat & RAG",
+      "item": [
+        {
+          "name": "Ask Question — Personal Legend (Grounded)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"What is a Personal Legend according to Melchizedek?\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/chat",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chat"]
+            },
+            "description": "Submits a literary question. Performs 384-d semantic embedding, pgvector cosine similarity retrieval, and Gemini 3.8 Flash answer generation with citations."
+          }
+        },
+        {
+          "name": "Ask Question — Crystal Merchant (Grounded)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"Who is the crystal merchant and what is his lifelong dream?\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/chat",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chat"]
+            },
+            "description": "Queries the character arc of the crystal merchant in Tangier."
+          }
+        },
+        {
+          "name": "Ask Question — Guardrail Test (Out-of-Domain)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"How do I build a nuclear fusion rocket engine?\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/chat",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chat"]
+            },
+            "description": "Demonstrates strict hallucination prevention: returns status 'INSUFFICIENT_EVIDENCE' with polite refusal."
+          }
+        },
+        {
+          "name": "Ask Question with Session Threading",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"What happens next to Santiago after he leaves the crystal shop?\",\n  \"sessionId\": \"{{sessionId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/chat",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chat"]
+            },
+            "description": "Appends conversation turns to an existing Supabase chat session thread."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sessions & History",
+      "item": [
+        {
+          "name": "List Saved Sessions (GET /api/chat/sessions)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/chat/sessions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chat", "sessions"]
+            },
+            "description": "Retrieves recent conversation session threads stored in Supabase PostgreSQL."
+          }
+        },
+        {
+          "name": "Get Session Details (GET /api/chat/sessions/:id)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/chat/sessions/{{sessionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chat", "sessions", "{{sessionId}}"]
+            },
+            "description": "Retrieves all conversation messages and cited context for a specific session."
+          }
+        },
+        {
+          "name": "Delete Session (DELETE /api/chat/sessions/:id)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/chat/sessions/{{sessionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chat", "sessions", "{{sessionId}}"]
+            },
+            "description": "Deletes a session thread and its associated message history."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Documentation & Playground",
+      "item": [
+        {
+          "name": "OpenAPI Specification JSON (GET /openapi.json)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/openapi.json",
+              "host": ["{{baseUrl}}"],
+              "path": ["openapi.json"]
+            },
+            "description": "Raw OpenAPI 3.0.3 specification JSON."
+          }
+        },
+        {
+          "name": "Interactive UI Playground (GET /demo)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/demo",
+              "host": ["{{baseUrl}}"],
+              "path": ["demo"]
+            },
+            "description": "Standalone HTML/JS Developer Playground with live query execution, dual-pane inspector, and citations viewer."
+          }
+        }
+      ]
+    }
+  ]
+}

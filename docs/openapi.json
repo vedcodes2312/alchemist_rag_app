@@ -1,0 +1,457 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Alchemist AI RAG API",
+    "version": "1.0.0",
+    "description": "Production-grade Retrieval-Augmented Generation (RAG) API for Paulo Coelho's *The Alchemist*. Integrates local 384-dimensional SentenceTransformer embeddings, Supabase PostgreSQL pgvector cosine similarity search, and Google Gemini 3.8 Flash for strictly grounded literary question answering.",
+    "contact": {
+      "name": "Alchemist AI Engineering",
+      "url": "https://github.com/vedcodes2312/alchemist_rag_app"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3001",
+      "description": "Local Development Server"
+    },
+    {
+      "url": "/",
+      "description": "Current Host / Production Server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Chat & RAG",
+      "description": "Book-grounded question answering and citation generation"
+    },
+    {
+      "name": "Sessions & History",
+      "description": "Database-persisted discussion thread management (Supabase PostgreSQL)"
+    },
+    {
+      "name": "System & Index",
+      "description": "Book index status and service health probes"
+    }
+  ],
+  "paths": {
+    "/api/chat": {
+      "post": {
+        "tags": ["Chat & RAG"],
+        "summary": "Ask a book-grounded question",
+        "description": "Embeds question locally with all-MiniLM-L6-v2, retrieves top-k chunks from Supabase pgvector with cosine similarity >= 0.30, and generates an answer strictly grounded in book text using Gemini 3.8 Flash. If book evidence is insufficient, returns honest fallback without hallucination.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatRequest"
+              },
+              "examples": {
+                "personalLegend": {
+                  "summary": "Thematic Query: Personal Legend",
+                  "value": {
+                    "question": "What does the book mean by a Personal Legend?"
+                  }
+                },
+                "melchizedek": {
+                  "summary": "Character Query: Melchizedek",
+                  "value": {
+                    "question": "Who is Melchizedek and what advice does he give Santiago?"
+                  }
+                },
+                "unanswerable": {
+                  "summary": "Out-of-domain Fallback Query",
+                  "value": {
+                    "question": "How do you build a rocket to travel to Mars?"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Grounded answer with verified book evidence citations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error (missing question, empty question, or exceeding 500 characters)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded (max 20 requests per minute per IP)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Index not initialized or embedding service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/book/info": {
+      "get": {
+        "tags": ["System & Index"],
+        "summary": "Get indexed book document metadata",
+        "description": "Returns index status, total chunk count in pgvector, embedding dimension, and source ingestion timestamp.",
+        "responses": {
+          "200": {
+            "description": "Index information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookInfoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/health": {
+      "get": {
+        "tags": ["System & Index"],
+        "summary": "Health check probe",
+        "description": "Shallow probe for process health; query `?deep=true` to probe local Python embedding service and Supabase database connectivity.",
+        "parameters": [
+          {
+            "name": "deep",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "description": "When true, probes downstream services (FastAPI on :8001 and Supabase PostgreSQL)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Health status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat/sessions": {
+      "get": {
+        "tags": ["Sessions & History"],
+        "summary": "List all conversation sessions",
+        "description": "Retrieves saved chat discussion threads ordered by last updated timestamp.",
+        "responses": {
+          "200": {
+            "description": "List of sessions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "sessions": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ChatSession"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat/sessions/{id}": {
+      "get": {
+        "tags": ["Sessions & History"],
+        "summary": "Get full conversation message history",
+        "description": "Fetches all turns in a discussion thread including verbatim quotes, literary interpretations, and consulted citations.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Unique session UUID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Session details with chronological message list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "session": {
+                      "$ref": "#/components/schemas/ChatSessionDetail"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Session not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Sessions & History"],
+        "summary": "Delete a conversation session",
+        "description": "Permanently deletes a chat session and all associated messages via database cascade delete.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Unique session UUID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Session deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ChatRequest": {
+        "type": "object",
+        "required": ["question"],
+        "properties": {
+          "question": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "The user query about characters, events, themes, or symbols in The Alchemist",
+            "example": "What does the book mean by a Personal Legend?"
+          },
+          "sessionId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Optional UUID to append this turn to an existing discussion thread"
+          }
+        }
+      },
+      "SourceExcerpt": {
+        "type": "object",
+        "properties": {
+          "chunkId": {
+            "type": "string",
+            "example": "the-alchemist-0027-e4a8b1c9"
+          },
+          "chapter": {
+            "type": "string",
+            "example": "Part One"
+          },
+          "pageNumber": {
+            "type": "integer",
+            "nullable": true,
+            "example": 24
+          },
+          "similarity": {
+            "type": "number",
+            "format": "float",
+            "description": "Cosine similarity score between 0.30 and 1.00",
+            "example": 0.7842
+          },
+          "excerpt": {
+            "type": "string",
+            "description": "Verbatim excerpt from the indexed book text",
+            "example": "It's what you have always wanted to accomplish. Everyone, when they are young, knows what their Personal Legend is."
+          }
+        }
+      },
+      "ChatResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["answered", "insufficient_evidence"],
+            "example": "answered"
+          },
+          "answer": {
+            "type": "string",
+            "description": "Factual answer strictly grounded in retrieved book passages, highlighting direct quotes",
+            "example": "A Personal Legend is defined as 'what you have always wanted to accomplish'. The book states that everyone knows what their Personal Legend is when they are young."
+          },
+          "interpretation": {
+            "type": "string",
+            "nullable": true,
+            "description": "Philosophical or thematic literary reading clearly separated from literal book statements",
+            "example": "The Personal Legend represents an individual's true life purpose and spiritual alignment with the Soul of the World."
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SourceExcerpt"
+            }
+          },
+          "sessionId": {
+            "type": "string",
+            "format": "uuid",
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "model": {
+                "type": "string",
+                "example": "gemini-3.8-flash"
+              },
+              "retrievalCount": {
+                "type": "integer",
+                "example": 5
+              },
+              "usedEvidenceCount": {
+                "type": "integer",
+                "example": 2
+              },
+              "warnings": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "example": []
+              }
+            }
+          }
+        }
+      },
+      "BookInfoResponse": {
+        "type": "object",
+        "properties": {
+          "slug": { "type": "string", "example": "the-alchemist" },
+          "title": { "type": "string", "example": "The Alchemist" },
+          "author": { "type": "string", "example": "Paulo Coelho" },
+          "indexReady": { "type": "boolean", "example": true },
+          "chunkCount": { "type": "integer", "example": 303 },
+          "embeddingModel": { "type": "string", "example": "sentence-transformers/all-MiniLM-L6-v2" },
+          "dimension": { "type": "integer", "example": 384 },
+          "ingestedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "HealthResponse": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string", "example": "ok" },
+          "uptime": { "type": "number", "example": 142.5 },
+          "timestamp": { "type": "string", "format": "date-time" },
+          "services": {
+            "type": "object",
+            "properties": {
+              "embedding": { "type": "string", "example": "ok" },
+              "database": { "type": "string", "example": "ok" }
+            }
+          }
+        }
+      },
+      "ChatSession": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "title": { "type": "string", "example": "What does the book mean by a Personal Legend?" },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "ChatMessage": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "role": { "type": "string", "enum": ["user", "assistant"] },
+          "content": { "type": "string" },
+          "interpretation": { "type": "string", "nullable": true },
+          "sources": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/SourceExcerpt" }
+          },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "ChatSessionDetail": {
+        "allOf": [
+          { "$ref": "#/components/schemas/ChatSession" },
+          {
+            "type": "object",
+            "properties": {
+              "messages": {
+                "type": "array",
+                "items": { "$ref": "#/components/schemas/ChatMessage" }
+              }
+            }
+          }
+        ]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": { "type": "string", "example": "VALIDATION_ERROR" },
+              "message": { "type": "string", "example": "Question cannot be empty" },
+              "requestId": { "type": "string", "example": "c7a8b9d0-1234-5678-9abc-def012345678" },
+              "details": { "type": "object", "nullable": true }
+            }
+          }
+        }
+      }
+    }
+  }
+}

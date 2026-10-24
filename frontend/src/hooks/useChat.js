@@ -77,6 +77,7 @@ export function useChat() {
             id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + 1),
             role: 'assistant',
             variant: 'answer',
+            question: trimmed,
             content: data.answer,
             interpretation: data.interpretation || null,
             sources: data.sources || [],
@@ -87,6 +88,7 @@ export function useChat() {
             id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + 1),
             role: 'assistant',
             variant: 'fallback',
+            question: trimmed,
             content:
               data.answer ||
               'I cannot find support for that in The Alchemist. I can only answer questions directly supported by the text.',

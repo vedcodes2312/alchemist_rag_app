@@ -5,12 +5,14 @@ import {
   PanelLeft,
   Plus,
   Cpu,
+  Terminal,
 } from 'lucide-react';
 
 export function AppHeader({
   indexReady,
   onToggleSidebar,
   onNewChat,
+  onOpenApiModal,
   isSidebarOpen,
 }) {
   return (
@@ -60,6 +62,15 @@ export function AppHeader({
             <BookOpen className="h-3.5 w-3.5 text-[#E5A93C]" />
             <span className="text-[11px] text-[#C5CCD8]">The Alchemist (303 Chunks)</span>
           </div>
+
+          <button
+            onClick={onOpenApiModal}
+            className="flex items-center gap-1.5 rounded-lg border border-[#2A2E3D] bg-[#1C202E] hover:bg-[#22283A] hover:border-[#E5A93C]/40 px-2.5 py-1.5 text-xs font-medium text-[#C5CCD8] hover:text-[#E5A93C] transition-all cursor-pointer"
+            title="View API cURL, endpoints, and Swagger documentation"
+          >
+            <Terminal className="w-3.5 h-3.5 text-[#E5A93C]" />
+            <span className="hidden sm:inline">API</span>
+          </button>
 
           <button
             onClick={onNewChat}

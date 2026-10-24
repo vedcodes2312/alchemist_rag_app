@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Alchemist AI — Interactive API Playground & UI Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-base: #0a0c13;
+      --bg-card: rgba(20, 24, 38, 0.85);
+      --bg-card-subtle: rgba(28, 34, 52, 0.6);
+      --bg-input: #111420;
+      --border-gold: rgba(198, 155, 85, 0.35);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --gold-primary: #c69b55;
+      --gold-light: #e6be77;
+      --gold-dark: #916c31;
+      --gold-glow: rgba(198, 155, 85, 0.25);
+      --text-main: #f4e9d5;
+      --text-muted: #9ba4b5;
+      --text-dim: #656d81;
+      --emerald: #10b981;
+      --emerald-bg: rgba(16, 185, 129, 0.12);
+      --amber: #f59e0b;
+      --amber-bg: rgba(245, 158, 11, 0.12);
+      --rose: #ef4444;
+      --rose-bg: rgba(239, 68, 68, 0.12);
+      --cyan: #38bdf8;
+      --font-serif: 'Cinzel', serif;
+      --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --radius-xl: 20px;
+      --shadow-card: 0 12px 36px -6px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--border-subtle);
+      --shadow-gold: 0 4px 20px -2px var(--gold-glow);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      background-image: 
+        radial-gradient(circle at 15% 10%, rgba(198, 155, 85, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 85% 90%, rgba(56, 189, 248, 0.04) 0%, transparent 40%),
+        linear-gradient(180deg, rgba(10, 12, 19, 0.95) 0%, rgba(15, 18, 29, 0.98) 100%);
+      background-attachment: fixed;
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      line-height: 1.5;
+    }
+
+    /* Top Navigation */
+    header {
+      background: rgba(14, 17, 28, 0.85);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 14px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      text-decoration: none;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, var(--gold-primary), var(--gold-dark));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #0b0d14;
+      font-weight: 800;
+      font-family: var(--font-serif);
+      font-size: 1.25rem;
+      box-shadow: var(--shadow-gold);
+    }
+
+    .brand-title {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-title h1 {
+      font-family: var(--font-serif);
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: var(--gold-light);
+      text-shadow: 0 0 12px rgba(198, 155, 85, 0.3);
+    }
+
+    .brand-title span {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+    }
+
+    .header-badges {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      border: 1px solid transparent;
+      transition: all 0.2s ease;
+    }
+
+    .badge-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .badge-success {
+      background: var(--emerald-bg);
+      color: var(--emerald);
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+
+    .badge-gold {
+      background: rgba(198, 155, 85, 0.12);
+      color: var(--gold-light);
+      border-color: var(--border-gold);
+    }
+
+    .badge-info {
+      background: rgba(56, 189, 248, 0.12);
+      color: var(--cyan);
+      border-color: rgba(56, 189, 248, 0.3);
+    }
+
+    .badge-amber {
+      background: var(--amber-bg);
+      color: var(--amber);
+      border-color: rgba(245, 158, 11, 0.3);
+    }
+
+    .header-links {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-link {
+      background: var(--bg-card-subtle);
+      color: var(--text-main);
+      border: 1px solid var(--border-subtle);
+      font-size: 0.8rem;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .btn-link:hover {
+      border-color: var(--border-gold);
+      color: var(--gold-light);
+      background: rgba(198, 155, 85, 0.1);
+    }
+
+    .btn-gold {
+      background: linear-gradient(135deg, var(--gold-primary), var(--gold-dark));
+      color: #0b0d14;
+      font-weight: 600;
+      border: none;
+    }
+
+    .btn-gold:hover {
+      background: linear-gradient(135deg, var(--gold-light), var(--gold-primary));
+      color: #000;
+      box-shadow: var(--shadow-gold);
+    }
+
+    /* Main Container */
+    main {
+      flex: 1;
+      padding: 24px;
+      max-width: 1600px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Banner / Hero */
+    .hero-strip {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-left: 4px solid var(--gold-primary);
+      padding: 16px 20px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .hero-text h2 {
+      font-family: var(--font-serif);
+      font-size: 1.15rem;
+      color: var(--gold-light);
+      margin-bottom: 4px;
+    }
+
+    .hero-text p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .preset-pill-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .preset-label {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    .preset-btn {
+      background: var(--bg-card-subtle);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      padding: 5px 11px;
+      border-radius: 9999px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .preset-btn:hover {
+      border-color: var(--gold-primary);
+      color: var(--gold-light);
+      background: rgba(198, 155, 85, 0.08);
+      transform: translateY(-1px);
+    }
+
+    .preset-btn.preset-ood {
+      border-color: rgba(245, 158, 11, 0.3);
+      color: #fbbf24;
+    }
+
+    .preset-btn.preset-ood:hover {
+      background: var(--amber-bg);
+      border-color: var(--amber);
+    }
+
+    /* Playground Split Grid */
+    .playground-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      flex: 1;
+    }
+
+    @media (max-width: 1100px) {
+      .playground-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 14px 20px;
+      background: rgba(18, 22, 35, 0.8);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .panel-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .panel-title svg {
+      width: 18px;
+      height: 18px;
+      color: var(--gold-primary);
+    }
+
+    .panel-body {
+      padding: 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      overflow-y: auto;
+    }
+
+    /* Input Card Area */
+    .input-section {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .input-meta-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .session-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+
+    .session-code {
+      font-family: var(--font-mono);
+      color: var(--cyan);
+      background: rgba(56, 189, 248, 0.08);
+      padding: 2px 6px;
+      border-radius: var(--radius-sm);
+    }
+
+    .btn-subtle {
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      padding: 3px 8px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-subtle:hover {
+      border-color: var(--gold-primary);
+      color: var(--gold-light);
+    }
+
+    .input-box-wrapper {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      background: var(--bg-input);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .input-box-wrapper:focus-within {
+      border-color: var(--gold-primary);
+      box-shadow: 0 0 0 3px rgba(198, 155, 85, 0.15);
+    }
+
+    textarea#questionInput {
+      width: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      font-size: 0.92rem;
+      padding: 14px 16px;
+      resize: vertical;
+      min-height: 85px;
+      max-height: 240px;
+      line-height: 1.5;
+    }
+
+    textarea#questionInput::placeholder {
+      color: var(--text-dim);
+    }
+
+    .input-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.04);
+      background: rgba(14, 18, 29, 0.6);
+      border-bottom-left-radius: var(--radius-md);
+      border-bottom-right-radius: var(--radius-md);
+    }
+
+    .input-hint {
+      font-size: 0.72rem;
+      color: var(--text-dim);
+    }
+
+    .btn-send {
+      background: linear-gradient(135deg, var(--gold-primary), var(--gold-dark));
+      color: #0a0c13;
+      border: none;
+      font-weight: 600;
+      font-size: 0.85rem;
+      padding: 8px 18px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn-send:hover:not(:disabled) {
+      background: linear-gradient(135deg, var(--gold-light), var(--gold-primary));
+      box-shadow: var(--shadow-gold);
+      transform: translateY(-1px);
+    }
+
+    .btn-send:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Output / Answer Rendered View */
+    .answer-card {
+      background: rgba(17, 21, 33, 0.7);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      transition: all 0.3s;
+    }
+
+    .answer-card.answered {
+      border-left: 4px solid var(--emerald);
+    }
+
+    .answer-card.insufficient {
+      border-left: 4px solid var(--amber);
+      background: rgba(30, 24, 14, 0.4);
+    }
+
+    .answer-card.error {
+      border-left: 4px solid var(--rose);
+      background: rgba(30, 14, 14, 0.4);
+    }
+
+    .answer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .answer-text {
+      font-size: 0.95rem;
+      line-height: 1.65;
+      color: var(--text-main);
+      white-space: pre-line;
+    }
+
+    .answer-text mark, .answer-text .quote-highlight {
+      background: rgba(198, 155, 85, 0.2);
+      color: var(--gold-light);
+      padding: 2px 5px;
+      border-radius: 4px;
+      border-bottom: 1px solid var(--gold-primary);
+      font-style: italic;
+    }
+
+    /* Citations / Excerpts */
+    .citations-section {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .citations-title {
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: var(--gold-light);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .citation-item {
+      background: var(--bg-card-subtle);
+      border: 1px solid var(--border-subtle);
+      border-left: 3px solid var(--gold-primary);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: 0.84rem;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .citation-quote {
+      color: #f1ebd8;
+      font-style: italic;
+      line-height: 1.5;
+    }
+
+    .citation-meta {
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Consulted Passages Accordion */
+    details.passages-drawer {
+      background: rgba(14, 17, 27, 0.6);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    details.passages-drawer summary {
+      padding: 9px 14px;
+      cursor: pointer;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      user-select: none;
+    }
+
+    details.passages-drawer summary:hover {
+      color: var(--gold-light);
+      background: rgba(198, 155, 85, 0.05);
+    }
+
+    .passages-content {
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      border-top: 1px solid var(--border-subtle);
+      max-height: 280px;
+      overflow-y: auto;
+    }
+
+    .passage-item {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      background: rgba(22, 27, 43, 0.8);
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      line-height: 1.45;
+    }
+
+    .passage-header {
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-dim);
+      font-size: 0.7rem;
+      margin-bottom: 4px;
+      font-family: var(--font-mono);
+    }
+
+    /* Right Column / API Inspector */
+    .api-tabs {
+      display: flex;
+      gap: 4px;
+      background: rgba(11, 14, 23, 0.8);
+      padding: 4px;
+      border-radius: var(--radius-sm);
+    }
+
+    .api-tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      font-size: 0.76rem;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .api-tab-btn.active {
+      background: var(--bg-card-subtle);
+      color: var(--gold-light);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .tab-content {
+      display: none;
+      flex-direction: column;
+      gap: 14px;
+      flex: 1;
+    }
+
+    .tab-content.active {
+      display: flex;
+    }
+
+    /* Code View / Raw JSON */
+    .code-container {
+      position: relative;
+      background: #090b12;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 380px;
+    }
+
+    .code-topbar {
+      background: #0d101a;
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .code-lang-label {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .btn-copy {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .btn-copy:hover {
+      color: var(--gold-light);
+      border-color: var(--gold-primary);
+    }
+
+    pre.code-block {
+      padding: 16px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      line-height: 1.5;
+      color: #cbd5e1;
+      overflow-x: auto;
+      overflow-y: auto;
+      flex: 1;
+      max-height: 520px;
+      white-space: pre;
+    }
+
+    /* JSON Syntax Highlighting */
+    .json-key { color: #7dd3fc; }
+    .json-string { color: #86efac; }
+    .json-number { color: #f472b6; }
+    .json-boolean { color: #fbbf24; }
+    .json-null { color: #94a3b8; }
+
+    /* Key Metrics Table */
+    .metrics-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+
+    .metrics-table th, .metrics-table td {
+      padding: 8px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .metrics-table th {
+      color: var(--text-dim);
+      font-weight: 500;
+      width: 35%;
+    }
+
+    .metrics-table td {
+      color: var(--text-main);
+      font-family: var(--font-mono);
+    }
+
+    /* Spinner */
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(0, 0, 0, 0.2);
+      border-top-color: #000;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: inline-block;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Empty state */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      color: var(--text-dim);
+      text-align: center;
+      gap: 12px;
+    }
+
+    .empty-state svg {
+      width: 44px;
+      height: 44px;
+      color: var(--border-gold);
+      opacity: 0.6;
+    }
+
+    /* Sessions Modal / Sidebar */
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      z-index: 99;
+      display: none;
+    }
+
+    .drawer {
+      position: fixed;
+      top: 0;
+      right: -420px;
+      width: 400px;
+      max-width: 90vw;
+      height: 100vh;
+      background: var(--bg-card);
+      border-left: 1px solid var(--border-subtle);
+      z-index: 100;
+      box-shadow: -10px 0 30px rgba(0, 0, 0, 0.8);
+      display: flex;
+      flex-direction: column;
+      transition: right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .drawer.open {
+      right: 0;
+    }
+
+    .drawer-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .drawer-body {
+      padding: 16px 20px;
+      overflow-y: auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .session-item {
+      background: var(--bg-card-subtle);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .session-item:hover {
+      border-color: var(--gold-primary);
+      background: rgba(198, 155, 85, 0.08);
+    }
+
+    .session-item-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 4px;
+    }
+
+    .session-item-date {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border-subtle);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      background: rgba(10, 12, 19, 0.9);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    footer a {
+      color: var(--gold-light);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <header>
+    <a href="/demo" class="brand">
+      <div class="brand-icon">A</div>
+      <div class="brand-title">
+        <h1>THE ALCHEMIST AI</h1>
+        <span>Interactive API Playground & UI Demo</span>
+      </div>
+    </a>
+
+    <div class="header-badges">
+      <div class="badge badge-success" id="healthBadge">
+        <span class="badge-dot"></span>
+        <span id="healthText">Connecting...</span>
+      </div>
+      <div class="badge badge-gold" id="bookBadge">
+        <span>📖 The Alchemist</span>
+        <span id="chunkCountPill" style="opacity: 0.75;">(303 chunks)</span>
+      </div>
+    </div>
+
+    <div class="header-links">
+      <button class="btn-link" id="btnOpenHistory">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        Sessions History
+      </button>
+      <a href="/docs" target="_blank" class="btn-link">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+        Swagger Docs
+      </a>
+      <a href="/openapi.json" target="_blank" class="btn-link">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+        OpenAPI Spec
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <!-- Preset Pills Hero Strip -->
+    <div class="hero-strip">
+      <div class="hero-text">
+        <h2>Local RAG Pipeline & API Playground</h2>
+        <p>Explore strictly grounded answers with citations, inspect real-time pgvector retrieval, and examine raw API responses side-by-side.</p>
+      </div>
+      <div class="preset-pill-list">
+        <span class="preset-label">Test Queries:</span>
+        <button class="preset-btn" data-query="What is a Personal Legend according to Melchizedek?">Personal Legend</button>
+        <button class="preset-btn" data-query="Who is the crystal merchant and what is his lifelong dream?">Crystal Merchant</button>
+        <button class="preset-btn" data-query="What does the alchemist say about the Soul of the World?">Soul of the World</button>
+        <button class="preset-btn" data-query="Tell me about Santiago's recurring dream under the sycamore tree.">Santiago's Dream</button>
+        <button class="preset-btn preset-ood" data-query="How do I build a nuclear fusion engine for interplanetary rockets?">Guardrail Test (Out-of-Domain)</button>
+      </div>
+    </div>
+
+    <!-- Playground Split Columns -->
+    <div class="playground-grid">
+      
+      <!-- Left Panel: UI Chat Experience -->
+      <section class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+            <span>Interactive Chat View</span>
+          </div>
+          <div class="session-indicator">
+            <span>Session:</span>
+            <span class="session-code" id="activeSessionDisplay">None (Ephemeral)</span>
+            <button class="btn-subtle" id="btnNewSession" title="Start a fresh conversation thread">+ New</button>
+          </div>
+        </div>
+
+        <div class="panel-body">
+          <!-- Question Input Box -->
+          <div class="input-section">
+            <div class="input-box-wrapper">
+              <textarea id="questionInput" placeholder="Ask anything about Paulo Coelho's The Alchemist... (e.g. 'What is the Language of the World?')" rows="3"></textarea>
+              <div class="input-controls">
+                <span class="input-hint">Press <kbd style="background:rgba(255,255,255,0.1);padding:2px 5px;border-radius:3px;">Ctrl</kbd> + <kbd style="background:rgba(255,255,255,0.1);padding:2px 5px;border-radius:3px;">Enter</kbd> to execute</span>
+                <button class="btn-send" id="btnSubmit">
+                  <span id="btnSubmitText">Ask Alchemist</span>
+                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Answer Render Area -->
+          <div id="answerContainer">
+            <div class="empty-state" id="emptyAnswerState">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+              <p>Type a question or select one of the presets above to query the book.</p>
+            </div>
+
+            <!-- Dynamic Answer Card (Hidden until response) -->
+            <div class="answer-card" id="activeAnswerCard" style="display: none;">
+              <div class="answer-header">
+                <div class="badge" id="answerStatusBadge">ANSWERED</div>
+                <div style="display: flex; gap: 8px;">
+                  <span class="badge badge-gold" id="groundingScoreBadge">Grounding: 1.0</span>
+                  <span class="badge badge-info" id="elapsedTimeBadge">320ms</span>
+                </div>
+              </div>
+
+              <div class="answer-text" id="answerTextContent"></div>
+
+              <!-- Citations Section -->
+              <div class="citations-section" id="citationsSection" style="display: none;">
+                <div class="citations-title">
+                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path></svg>
+                  <span>Book Citations & Quoted Passages</span>
+                </div>
+                <div id="citationsList" style="display: flex; flex-direction: column; gap: 8px;"></div>
+              </div>
+
+              <!-- Consulted Passages (pgvector) Drawer -->
+              <details class="passages-drawer" id="passagesDrawer" style="display: none;">
+                <summary>
+                  <span>Retrieved Passages from pgvector (<span id="passagesCount">0</span> chunks consulted)</span>
+                  <span style="font-size: 0.7rem; color: var(--gold-light);">Toggle Details</span>
+                </summary>
+                <div class="passages-content" id="passagesList"></div>
+              </details>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Right Panel: API Inspector & Raw Data -->
+      <section class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+            <span>API Inspector (<code>POST /api/chat</code>)</span>
+          </div>
+          <div class="api-tabs">
+            <button class="api-tab-btn active" data-tab="jsonTab">Raw JSON</button>
+            <button class="api-tab-btn" data-tab="curlTab">cURL</button>
+            <button class="api-tab-btn" data-tab="metricsTab">Metrics</button>
+          </div>
+        </div>
+
+        <div class="panel-body">
+          
+          <!-- Tab 1: Raw JSON -->
+          <div class="tab-content active" id="jsonTab">
+            <div class="code-container">
+              <div class="code-topbar">
+                <span class="code-lang-label">Response Payload (JSON)</span>
+                <button class="btn-copy" id="btnCopyJson">Copy JSON</button>
+              </div>
+              <pre class="code-block" id="jsonCodeBlock">// Waiting for query execution...
+// Send a question to inspect the raw response schema.
+{
+  "status": "idle",
+  "endpoint": "POST /api/chat"
+}</pre>
+            </div>
+          </div>
+
+          <!-- Tab 2: cURL Command -->
+          <div class="tab-content" id="curlTab">
+            <div class="code-container">
+              <div class="code-topbar">
+                <span class="code-lang-label">Executable cURL Request</span>
+                <button class="btn-copy" id="btnCopyCurl">Copy cURL</button>
+              </div>
+              <pre class="code-block" id="curlCodeBlock">curl -X POST http://localhost:3001/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"question": "What is a Personal Legend?"}'</pre>
+            </div>
+          </div>
+
+          <!-- Tab 3: Detailed Metrics -->
+          <div class="tab-content" id="metricsTab">
+            <div style="background: rgba(13, 16, 26, 0.7); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 14px;">
+              <table class="metrics-table">
+                <tbody>
+                  <tr><th>HTTP Status</th><td id="mHttpStatus">—</td></tr>
+                  <tr><th>Latency</th><td id="mLatency">—</td></tr>
+                  <tr><th>Request ID</th><td id="mRequestId">—</td></tr>
+                  <tr><th>RAG Status</th><td id="mRagStatus">—</td></tr>
+                  <tr><th>Grounding Score</th><td id="mGrounding">—</td></tr>
+                  <tr><th>Retrieved Chunks</th><td id="mRetrievedCount">—</td></tr>
+                  <tr><th>Citations Count</th><td id="mCitationsCount">—</td></tr>
+                  <tr><th>Session ID</th><td id="mSessionId">—</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Session Threads Drawer -->
+  <div class="drawer-overlay" id="drawerOverlay"></div>
+  <aside class="drawer" id="historyDrawer">
+    <div class="drawer-header">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <h3 style="font-size: 0.95rem; font-weight: 600;">Saved Sessions History</h3>
+      </div>
+      <button class="btn-subtle" id="btnCloseHistory">&times; Close</button>
+    </div>
+    <div class="drawer-body" id="sessionsListContainer">
+      <div style="text-align: center; color: var(--text-dim); padding: 20px;">Loading sessions from Supabase...</div>
+    </div>
+  </aside>
+
+  <!-- Footer -->
+  <footer>
+    <div>
+      The Alchemist RAG Pipeline &middot; Powered by Supabase PostgreSQL (pgvector), SentenceTransformers, and Google Gemini.
+    </div>
+    <div style="display: flex; gap: 14px;">
+      <a href="/api/health?deep=true" target="_blank">API Health Status</a>
+      <a href="/api/book/info" target="_blank">Book Info</a>
+      <a href="/docs" target="_blank">Interactive Swagger Docs</a>
+    </div>
+  </footer>
+
+  <!-- Client JavaScript -->
+  <script>
+    let currentSessionId = null;
+    let latestResponseData = null;
+    let latestLatencyMs = 0;
+
+    // DOM Elements
+    const questionInput = document.getElementById('questionInput');
+    const btnSubmit = document.getElementById('btnSubmit');
+    const btnSubmitText = document.getElementById('btnSubmitText');
+    const activeSessionDisplay = document.getElementById('activeSessionDisplay');
+    const btnNewSession = document.getElementById('btnNewSession');
+    const emptyAnswerState = document.getElementById('emptyAnswerState');
+    const activeAnswerCard = document.getElementById('activeAnswerCard');
+    const answerStatusBadge = document.getElementById('answerStatusBadge');
+    const groundingScoreBadge = document.getElementById('groundingScoreBadge');
+    const elapsedTimeBadge = document.getElementById('elapsedTimeBadge');
+    const answerTextContent = document.getElementById('answerTextContent');
+    const citationsSection = document.getElementById('citationsSection');
+    const citationsList = document.getElementById('citationsList');
+    const passagesDrawer = document.getElementById('passagesDrawer');
+    const passagesCount = document.getElementById('passagesCount');
+    const passagesList = document.getElementById('passagesList');
+    const jsonCodeBlock = document.getElementById('jsonCodeBlock');
+    const curlCodeBlock = document.getElementById('curlCodeBlock');
+    const healthBadge = document.getElementById('healthBadge');
+    const healthText = document.getElementById('healthText');
+    const chunkCountPill = document.getElementById('chunkCountPill');
+    const historyDrawer = document.getElementById('historyDrawer');
+    const drawerOverlay = document.getElementById('drawerOverlay');
+    const btnOpenHistory = document.getElementById('btnOpenHistory');
+    const btnCloseHistory = document.getElementById('btnCloseHistory');
+    const sessionsListContainer = document.getElementById('sessionsListContainer');
+
+    // Metrics elements
+    const mHttpStatus = document.getElementById('mHttpStatus');
+    const mLatency = document.getElementById('mLatency');
+    const mRequestId = document.getElementById('mRequestId');
+    const mRagStatus = document.getElementById('mRagStatus');
+    const mGrounding = document.getElementById('mGrounding');
+    const mRetrievedCount = document.getElementById('mRetrievedCount');
+    const mCitationsCount = document.getElementById('mCitationsCount');
+    const mSessionId = document.getElementById('mSessionId');
+
+    // 1. Check System Health & Book Info on Mount
+    async function initSystemProbes() {
+      try {
+        const [healthRes, bookRes] = await Promise.all([
+          fetch('/api/health?deep=true').then(r => r.json()).catch(() => null),
+          fetch('/api/book/info').then(r => r.json()).catch(() => null)
+        ]);
+
+        if (healthRes && healthRes.status === 'ok') {
+          healthText.textContent = 'API Online (pgvector Ready)';
+          healthBadge.className = 'badge badge-success';
+        } else {
+          healthText.textContent = 'API Partial / Degraded';
+          healthBadge.className = 'badge badge-amber';
+        }
+
+        if (bookRes && bookRes.data) {
+          chunkCountPill.textContent = `(${bookRes.data.chunkCount || 303} chunks)`;
+        }
+      } catch (err) {
+        healthText.textContent = 'Offline / Connecting';
+        healthBadge.className = 'badge badge-amber';
+      }
+    }
+
+    // 2. Tab Navigation
+    document.querySelectorAll('.api-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.api-tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        const tabId = btn.getAttribute('data-tab');
+        document.getElementById(tabId).classList.add('active');
+      });
+    });
+
+    // 3. Preset Pill Click Handlers
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const query = btn.getAttribute('data-query');
+        questionInput.value = query;
+        updateCurlPreview(query, currentSessionId);
+        executeQuestion(query);
+      });
+    });
+
+    // Update cURL Preview live on typing
+    questionInput.addEventListener('input', () => {
+      updateCurlPreview(questionInput.value.trim(), currentSessionId);
+    });
+
+    function updateCurlPreview(query, sessionId) {
+      const payload = { question: query || 'What is a Personal Legend?' };
+      if (sessionId) payload.sessionId = sessionId;
+      const jsonStr = JSON.stringify(payload);
+      curlCodeBlock.textContent = `curl -X POST http://localhost:3001/api/chat \\\n  -H "Content-Type: application/json" \\\n  -d '${jsonStr}'`;
+    }
+
+    // Keyboard shortcut: Ctrl + Enter / Cmd + Enter
+    questionInput.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        triggerSubmit();
+      }
+    });
+
+    btnSubmit.addEventListener('click', triggerSubmit);
+
+    function triggerSubmit() {
+      const q = questionInput.value.trim();
+      if (!q) {
+        questionInput.focus();
+        return;
+      }
+      executeQuestion(q);
+    }
+
+    // 4. Execute Chat Query
+    async function executeQuestion(question) {
+      setLoading(true);
+      const startTime = performance.now();
+
+      const requestPayload = { question };
+      if (currentSessionId) requestPayload.sessionId = currentSessionId;
+
+      updateCurlPreview(question, currentSessionId);
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestPayload)
+        });
+
+        const elapsed = Math.round(performance.now() - startTime);
+        latestLatencyMs = elapsed;
+        const resJson = await res.json();
+        latestResponseData = resJson;
+
+        renderAnswer(res.status, resJson, elapsed);
+        renderApiInspector(res.status, resJson, elapsed, res.headers);
+
+        if (resJson && resJson.data && resJson.data.sessionId) {
+          setSessionId(resJson.data.sessionId);
+        }
+      } catch (err) {
+        const elapsed = Math.round(performance.now() - startTime);
+        const errorPayload = {
+          success: false,
+          error: {
+            code: 'FETCH_ERROR',
+            message: err.message || 'Network request failed'
+          }
+        };
+        renderAnswer(500, errorPayload, elapsed);
+        renderApiInspector(500, errorPayload, elapsed, new Headers());
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function setLoading(isLoading) {
+      btnSubmit.disabled = isLoading;
+      if (isLoading) {
+        btnSubmitText.innerHTML = '<span class="spinner"></span> Consulting the book...';
+      } else {
+        btnSubmitText.textContent = 'Ask Alchemist';
+      }
+    }
+
+    function setSessionId(id) {
+      currentSessionId = id;
+      if (id) {
+        activeSessionDisplay.textContent = id.slice(0, 8) + '...';
+        activeSessionDisplay.title = id;
+      } else {
+        activeSessionDisplay.textContent = 'None (Ephemeral)';
+        activeSessionDisplay.removeAttribute('title');
+      }
+      updateCurlPreview(questionInput.value.trim(), currentSessionId);
+    }
+
+    btnNewSession.addEventListener('click', () => {
+      setSessionId(null);
+      questionInput.value = '';
+      emptyAnswerState.style.display = 'flex';
+      activeAnswerCard.style.display = 'none';
+      jsonCodeBlock.textContent = '// Fresh session started. Ready for new questions.';
+      updateCurlPreview('', null);
+    });
+
+    // 5. Render Answer Card
+    function renderAnswer(httpStatus, response, latencyMs) {
+      emptyAnswerState.style.display = 'none';
+      activeAnswerCard.style.display = 'flex';
+      elapsedTimeBadge.textContent = `${latencyMs}ms`;
+
+      if (httpStatus >= 400 || !response.success) {
+        activeAnswerCard.className = 'answer-card error';
+        answerStatusBadge.className = 'badge badge-rose';
+        answerStatusBadge.textContent = response.error?.code || 'ERROR';
+        groundingScoreBadge.style.display = 'none';
+        answerTextContent.textContent = response.error?.message || 'An unexpected error occurred.';
+        citationsSection.style.display = 'none';
+        passagesDrawer.style.display = 'none';
+        return;
+      }
+
+      const data = response.data || {};
+      const status = data.status || 'ANSWERED';
+
+      if (status === 'ANSWERED') {
+        activeAnswerCard.className = 'answer-card answered';
+        answerStatusBadge.className = 'badge badge-success';
+        answerStatusBadge.textContent = 'ANSWERED';
+      } else {
+        activeAnswerCard.className = 'answer-card insufficient';
+        answerStatusBadge.className = 'badge badge-amber';
+        answerStatusBadge.textContent = 'INSUFFICIENT EVIDENCE (GUARDRAIL)';
+      }
+
+      // Grounding Score
+      if (typeof data.groundingScore === 'number') {
+        groundingScoreBadge.style.display = 'inline-flex';
+        groundingScoreBadge.textContent = `Grounding: ${data.groundingScore.toFixed(2)}`;
+      } else {
+        groundingScoreBadge.style.display = 'none';
+      }
+
+      // Formatted Answer Text
+      let formattedText = data.answer || '';
+      // Highlight quoted phrases with quotes
+      formattedText = formattedText.replace(/"([^"]+)"/g, '<span class="quote-highlight">"$1"</span>');
+      answerTextContent.innerHTML = formattedText;
+
+      // Citations
+      if (Array.isArray(data.citations) && data.citations.length > 0) {
+        citationsSection.style.display = 'flex';
+        citationsList.innerHTML = data.citations.map((c, i) => `
+          <div class="citation-item">
+            <div class="citation-quote">"${escapeHtml(c.quote || '')}"</div>
+            <div class="citation-meta">
+              <span>Chapter / Context: <strong>${escapeHtml(c.chapter || 'The Alchemist')}</strong></span>
+              ${c.chunkId ? `<span style="font-family: var(--font-mono);">${escapeHtml(c.chunkId)}</span>` : ''}
+            </div>
+          </div>
+        `).join('');
+      } else {
+        citationsSection.style.display = 'none';
+        citationsList.innerHTML = '';
+      }
+
+      // Retrieved Passages (pgvector)
+      if (Array.isArray(data.passagesConsulted) && data.passagesConsulted.length > 0) {
+        passagesDrawer.style.display = 'block';
+        passagesCount.textContent = data.passagesConsulted.length;
+        passagesList.innerHTML = data.passagesConsulted.map((p, i) => {
+          const sim = p.similarity !== undefined ? `Similarity: ${(p.similarity * 100).toFixed(1)}%` : '';
+          return `
+            <div class="passage-item">
+              <div class="passage-header">
+                <span>Passage #${i + 1} (${p.chapter || 'Excerpt'})</span>
+                <span>${sim}</span>
+              </div>
+              <div>${escapeHtml(p.text || '')}</div>
+            </div>
+          `;
+        }).join('');
+      } else {
+        passagesDrawer.style.display = 'none';
+        passagesList.innerHTML = '';
+      }
+    }
+
+    // 6. Render API Inspector & Syntax Highlighting
+    function renderApiInspector(httpStatus, response, latencyMs, headers) {
+      // Syntax-highlighted JSON
+      jsonCodeBlock.innerHTML = syntaxHighlightJson(response);
+
+      // Metrics Table
+      mHttpStatus.textContent = `${httpStatus} ${httpStatus === 200 ? 'OK' : 'ERROR'}`;
+      mHttpStatus.style.color = httpStatus === 200 ? 'var(--emerald)' : 'var(--rose)';
+      mLatency.textContent = `${latencyMs} ms`;
+      mRequestId.textContent = headers?.get?.('x-request-id') || response?.meta?.requestId || '—';
+      mRagStatus.textContent = response?.data?.status || (response?.success ? 'OK' : 'ERROR');
+      mGrounding.textContent = response?.data?.groundingScore !== undefined ? response.data.groundingScore : '—';
+      mRetrievedCount.textContent = response?.data?.passagesConsulted?.length || 0;
+      mCitationsCount.textContent = response?.data?.citations?.length || 0;
+      mSessionId.textContent = response?.data?.sessionId || '—';
+    }
+
+    // JSON Syntax Highlighter Helper
+    function syntaxHighlightJson(json) {
+      if (typeof json !== 'string') {
+        json = JSON.stringify(json, null, 2);
+      }
+      json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+        let cls = 'json-number';
+        if (/^"/.test(match)) {
+          if (/:$/.test(match)) {
+            cls = 'json-key';
+          } else {
+            cls = 'json-string';
+          }
+        } else if (/true|false/.test(match)) {
+          cls = 'json-boolean';
+        } else if (/null/.test(match)) {
+          cls = 'json-null';
+        }
+        return '<span class="' + cls + '">' + match + '</span>';
+      });
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    // Copy Buttons
+    document.getElementById('btnCopyJson').addEventListener('click', () => {
+      if (!latestResponseData) return;
+      navigator.clipboard.writeText(JSON.stringify(latestResponseData, null, 2));
+      const btn = document.getElementById('btnCopyJson');
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy JSON', 1800);
+    });
+
+    document.getElementById('btnCopyCurl').addEventListener('click', () => {
+      navigator.clipboard.writeText(curlCodeBlock.textContent);
+      const btn = document.getElementById('btnCopyCurl');
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy cURL', 1800);
+    });
+
+    // 7. Session History Drawer
+    btnOpenHistory.addEventListener('click', openHistory);
+    btnCloseHistory.addEventListener('click', closeHistory);
+    drawerOverlay.addEventListener('click', closeHistory);
+
+    async function openHistory() {
+      historyDrawer.classList.add('open');
+      drawerOverlay.style.display = 'block';
+      sessionsListContainer.innerHTML = '<div style="text-align: center; color: var(--text-dim); padding: 20px;">Fetching sessions from Supabase...</div>';
+
+      try {
+        const res = await fetch('/api/chat/sessions');
+        const data = await res.json();
+        const sessions = data.data || [];
+
+        if (sessions.length === 0) {
+          sessionsListContainer.innerHTML = '<div style="text-align: center; color: var(--text-dim); padding: 20px;">No saved sessions found in Supabase yet. Ask questions to create new conversation threads!</div>';
+          return;
+        }
+
+        sessionsListContainer.innerHTML = sessions.map(s => `
+          <div class="session-item" data-id="${s.id}">
+            <div class="session-item-title">${escapeHtml(s.title || 'Conversation Thread')}</div>
+            <div class="session-item-date">${new Date(s.created_at || s.updated_at).toLocaleString()}</div>
+          </div>
+        `).join('');
+
+        document.querySelectorAll('.session-item').forEach(el => {
+          el.addEventListener('click', () => {
+            const id = el.getAttribute('data-id');
+            setSessionId(id);
+            closeHistory();
+          });
+        });
+      } catch (err) {
+        sessionsListContainer.innerHTML = `<div style="color: var(--rose); padding: 20px;">Failed to load sessions: ${err.message}</div>`;
+      }
+    }
+
+    function closeHistory() {
+      historyDrawer.classList.remove('open');
+      drawerOverlay.style.display = 'none';
+    }
+
+    // Initialize probes on load
+    initSystemProbes();
+  </script>
+</body>
+</html>

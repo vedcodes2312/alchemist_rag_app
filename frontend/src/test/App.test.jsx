@@ -49,4 +49,19 @@ describe('Alchemist AI Frontend App', () => {
     await user.type(input, 'Who is the Alchemist?');
     expect(sendButton).toBeEnabled();
   });
+
+  it('renders API button in header and opens API reference dialog on click', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    const apiButton = screen.getByRole('button', { name: /API/i });
+    expect(apiButton).toBeInTheDocument();
+
+    await user.click(apiButton);
+
+    expect(screen.getByText('Alchemist RAG API')).toBeInTheDocument();
+    expect(screen.getByText(/Copy cURL/i)).toBeInTheDocument();
+    expect(screen.getByText(/Developer Playground UI/i)).toBeInTheDocument();
+  });
 });
+
